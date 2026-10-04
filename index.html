@@ -151,6 +151,13 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 .guided.rest .count{color:var(--ink)}
 .progressline{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:12px}
 .progressline i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.how{margin-top:8px;font-size:13.5px;text-align:left}
+.how summary{font-weight:700;color:var(--accent);font-size:13px;cursor:pointer;list-style:none}
+.how summary::before{content:'▸ '}
+.how[open] summary::before{content:'▾ '}
+.how ol{margin:6px 0 0;padding-left:18px;color:var(--ink)}
+.how ol li{margin:3px 0;line-height:1.4}
+.guided .how{max-width:36ch;margin:10px auto 0}
 .loadf{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);margin-top:6px}
 .loadf input{width:84px;padding:6px 8px;font-size:14px}
 .itemrow{display:flex;gap:10px;align-items:flex-start}
@@ -288,6 +295,27 @@ const FOCUS = {
  mer:['A strong upper body and a proud posture.','Shoulder blades pulling together on every row, chest up on every press. Then squeeze hard on the glute finishers.','Strong arms and back are what make the whole silhouette look balanced.'],
  jeu:['Hamstrings and glutes through the hip hinge: the shape-changing session.','The stretch at the back of the thighs on the way down, then the squeeze on the way up. Flat back, hips back.','Romanian deadlifts and hip thrusts are the two that pay the most. Don\'t rush them.'],
  ven:['Keep moving for 20 minutes.','A steady rhythm you can hold to the end, not a sprint.','Beat your last time. Write it down.']
+};
+const HOW = {
+ hipthrustbar:['Upper back on the bench, bar with a pad across your hips.','Feet flat, shins vertical at the top of the movement.','Drive through your heels up to a straight line from shoulders to knees.','Chin tucked, eyes forward, squeeze the glutes for 1 s at the top.','Lower under control without resting on the floor.','Mistakes: arching the lower back at the top, feet too far out, head tilted back.'],
+ rdl:['Standing, bar against your thighs, knees slightly bent.','Push the hips back, bar sliding down the legs, flat back.','Go down until you feel the hamstrings stretch, usually just below the knee.','Come back up by driving the hips forward, squeeze the glutes.','The knees barely move during the lift.','Mistakes: rounded back, squatting instead of hinging, bar drifting away from the body.'],
+ goblet:['Hold the KB by the horns against your chest, elbows pointing down.','Feet shoulder-width, toes slightly out.','Lower between your knees, elbows passing inside them.','Heels down, chest up, as low as comfortable.','Push the floor away to stand.','Mistakes: heels lifting, chest collapsing.'],
+ legpress:['Back and hips against the pad, feet shoulder-width.','Feet high on the platform for glutes, in the middle for quads.','Lower to 90° without the lower back lifting off.','Push through the heels without locking the knees.','Mistakes: knees caving in, short range with too much weight.'],
+ bulgare:['Back foot on a bench, front foot well forward.','Lean the torso slightly forward for glutes, upright for quads.','Lower for 3 s, back knee toward the floor.','Push through the front heel to stand.','Mistakes: front foot too close, knee caving in.'],
+ cablerow:['Sit tall, feet on the platform, slight knee bend, flat back.','Pull the handle to your stomach, elbows close, shoulders down.','Squeeze the shoulder blades for 1 s, return slowly.','Mistakes: leaning back to pull, shoulders rising to the ears.'],
+ swing2:['Feet a bit wider than shoulders, KB on the floor in front of you.','Hips back, flat back, grab the bell and hike it between your legs.','Snap the hips forward: the bell floats up on its own.','Arms relaxed, bell no higher than the chest.','Let it fall, hips back, and repeat.','Mistakes: squatting instead of hinging, lifting with the arms, rounded back.'],
+ kbswing16:['Same technique as the swing: hips, not arms.','If the bell goes above the chest it\'s too light; if the back rounds it\'s too heavy.'],
+ row1:['KB on the floor between wide feet.','Hips back, torso almost horizontal, one hand on the bell or your knee.','Pull the other bell to your hip, elbow close to the body.','Pause 1 s, lower, switch arms.','Mistakes: torso rising, shoulder shrugging.'],
+ pompesg:['Hands under the shoulders, straight line from knees (or feet) to head.','Elbows at 45° from the body, not flared at 90°.','Lower the chest toward the floor for 2 s.','Push up keeping the pelvis tucked.','Hands elevated to make it easier, full push-ups when you get all the reps.','Mistakes: hips sagging, head diving.'],
+ hipthrustkb:['Back on the floor, knees bent, KB resting on your hips.','Push through the heels, lift until the body is straight from shoulders to knees.','Squeeze the glutes for 1 s at the top, chin tucked.','Lower under control.','Mistakes: arching the back, pushing through the toes.'],
+ abduction:['Lie on your side, legs straight, hips stacked.','Lift the top leg without rolling backward, toes slightly pointed down.','Pause 1 s at the top, lower slowly.','Mistakes: rolling the pelvis back, swinging the leg.'],
+ kickback:['On all fours, hands under shoulders, knees under hips.','Push one heel toward the ceiling, knee bent, without arching the back.','Squeeze the glute at the top, lower slowly.','Mistakes: arching the lower back, swinging.'],
+ dbohp:['Seated, back pad at 80°, dumbbells at ear level, palms forward.','Press overhead without arching, exhale at the top.','Lower for 2 s back to the ears.','Mistakes: arching, dumbbells drifting forward.'],
+ dbbench:['Shoulder blades pinched, dumbbells at chest level, elbows at 45°.','Press up, bringing the dumbbells slightly together at the top.','Lower for 2 s, stretch without forcing.','Mistakes: elbows flared at 90°, bouncing at the bottom.'],
+ latpull:['Grip a bit wider than shoulders, sit tall, chest up.','Pull the bar to the upper chest, elbows down and back.','Return slowly to straight arms.','Mistakes: leaning way back, pulling behind the neck.'],
+ legcurl:['Hips pressed into the bench, pad just above the ankles.','Curl the heels toward the glutes, squeeze 1 s.','Lower for 2 s.','Mistakes: hips lifting, jerking the weight.'],
+ stepupdb:['Bench at knee height, dumbbells by your sides.','Step up driving through the heel of the top leg.','Don\'t push off the bottom foot.','Lower under control.','Mistakes: pushing off the floor leg, leaning forward.'],
+ rower:['Strap in, light grip, flat back.','Push with the legs, then swing the torso, then pull the arms.','Return: arms, torso, legs.','Rate 24 to 28 strokes per minute.']
 };
 const TESTS = [
   {k:'pushups', label:'Max push-ups (note the variation)', unit:''},
@@ -536,7 +564,7 @@ function renderGuided(day, ph){
   const thumb=k=>{ if(vidSrc(k)) return vidTag(k,'gvid'); const s=imgSrc(k); return s?`<img class="thumb" src="${s}" alt="${esc(LIBMAP[k]||'')}" data-view="${k}" onerror="this.remove()">`:''; };
   let html=`<div class="progressline"><i style="width:${pct}%"></i></div>`;
   if(st.t==='work'){
-    html+=`<div class="guided"><div class="lbl">Set</div><div class="count">${st.s}/${st.n}</div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${(gymOn()&&b0.g)?loadField(b.k):''}${b.k?thumb(b.k):''}
+    html+=`<div class="guided"><div class="lbl">Set</div><div class="count">${st.s}/${st.n}</div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${(gymOn()&&b0.g)?loadField(b.k):''}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}
     <div class="btns"><button class="btn" id="gNext">Set done${guided.pos===guided.seq.length-1?' · finish':''}</button><div class="row" style="justify-content:center"><button class="btn ghost small" id="gSkip">Skip exercise</button><button class="btn ghost small" id="gQuit">Quit</button></div></div></div>`;
   } else {
     const nxt=guided.seq.slice(guided.pos+1).find(x=>x.t==='work' && x.i!==st.i); const nb0=nxt?day.blocks[nxt.i]:null; const nb=nb0?bx(nb0):null; const last=(st.s===st.n);
@@ -617,6 +645,8 @@ async function saveVideo(k,file,labelEl){
   catch(e){ const code=(e&&e.code)||''; toast(code==='quota_exceeded'?'Quota reached':'Upload failed '+(code||'')); rerender(); }
 }
 async function deleteVideo(k){ state.videos=state.videos||{}; const id=state.videos[k]; if(!id) return; delete state.videos[k]; persist(); if(assetsNs){ try{ await assetsNs.delete(id); }catch(e){} } rerender(); }
+function lmLink(k){ return 'https://liftmanual.com/?s='+encodeURIComponent(YT[k]||LIBMAP[k]||k); }
+function howHtml(k){ const s=HOW[k]; if(!s) return ''; return `<details class="how"><summary>Technique, step by step</summary><ol>${s.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`; }
 function ytLink(k){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent('how to '+(YT[k]||LIBMAP[k]||k)+' proper form technique tutorial'); }
 function shrink(file){ return new Promise((res,rej)=>{ const img=new Image(); const u=URL.createObjectURL(file); img.onload=()=>{ const m=Math.min(1,700/Math.max(img.width,img.height)); const c=document.createElement('canvas'); c.width=Math.round(img.width*m); c.height=Math.round(img.height*m); c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(u); c.toBlob(b=>b?res(b):rej(new Error('no blob')),'image/jpeg',0.82); }; img.onerror=rej; img.src=u; }); }
 async function saveImage(k,file,labelEl){
@@ -645,7 +675,7 @@ async function deleteImage(k){
 }
 function imgTools(k){
   const src=imgSrc(k);
-  return `${src?`<img class="thumb" src="${src}" alt="${esc(LIBMAP[k]||k)}" data-view="${k}" onerror="this.remove()">`:''}<div class="tools"><a class="link" href="${ytLink(k)}" target="_blank" rel="noopener">Video demo</a><label class="upl">${src?'Change image':'Add image'}<input type="file" accept="image/*" data-img="${k}"></label>${vidSrc(k)?`<button class="upl" data-playvid="${k}">▶ My video</button>`:''}${assetsNs?`<label class="upl">${vidSrc(k)?'Change video':'Add video'}<input type="file" accept="video/mp4,video/webm,video/quicktime" data-vid="${k}"></label>`:''}</div>`;
+  return `${src?`<img class="thumb" src="${src}" alt="${esc(LIBMAP[k]||k)}" data-view="${k}" onerror="this.remove()">`:''}${howHtml(k)}<div class="tools"><a class="link" href="${ytLink(k)}" target="_blank" rel="noopener">Video</a><a class="link" href="${lmLink(k)}" target="_blank" rel="noopener">Lift Manual</a><label class="upl">${src?'Change image':'Add image'}<input type="file" accept="image/*" data-img="${k}"></label>${vidSrc(k)?`<button class="upl" data-playvid="${k}">▶ My video</button>`:''}${assetsNs?`<label class="upl">${vidSrc(k)?'Change video':'Add video'}<input type="file" accept="video/mp4,video/webm,video/quicktime" data-vid="${k}"></label>`:''}</div>`;
 }
 let ovKey=null;
 function bindImages(root){
@@ -659,7 +689,7 @@ document.getElementById('ovDel').onclick=()=>{ const vmode=document.getElementBy
 document.getElementById('overlay').onclick=e=>{ if(e.target.id==='overlay'){ e.target.classList.remove('show'); document.getElementById('ovVid').pause(); } };
 function renderLibrary(){
   return `<div class="card"><h3>Exercise cards</h3><p class="note">For each exercise: a reference video for technique, plus your own image or video to recognize it at a glance. They then show up inside the sessions and in guided mode.</p></div>
-  <div class="lib">${LIB.map(([k,n])=>{ const s=imgSrc(k); return `<div class="item">${s?`<img src="${s}" alt="${esc(n)}" data-view="${k}" onerror="this.outerHTML='<div class=ph>?</div>'">`:`<div class="ph">No image yet</div>`}<b>${esc(n)}</b><div class="tools"><a class="link" href="${ytLink(k)}" target="_blank" rel="noopener">Video</a><label class="upl">${s?'Change':'Add'}<input type="file" accept="image/*" data-img="${k}"></label>${vidSrc(k)?`<button class="upl" data-playvid="${k}">▶</button>`:''}${assetsNs?`<label class="upl">🎬<input type="file" accept="video/mp4,video/webm,video/quicktime" data-vid="${k}"></label>`:''}</div></div>`; }).join('')}</div>`;
+  <div class="lib">${LIB.map(([k,n])=>{ const s=imgSrc(k); return `<div class="item">${s?`<img src="${s}" alt="${esc(n)}" data-view="${k}" onerror="this.outerHTML='<div class=ph>?</div>'">`:`<div class="ph">No image yet</div>`}<b>${esc(n)}</b><div class="tools"><a class="link" href="${ytLink(k)}" target="_blank" rel="noopener">Video</a><a class="link" href="${lmLink(k)}" target="_blank" rel="noopener">LM</a><label class="upl">${s?'Change':'Add'}<input type="file" accept="image/*" data-img="${k}"></label>${vidSrc(k)?`<button class="upl" data-playvid="${k}">▶</button>`:''}${assetsNs?`<label class="upl">🎬<input type="file" accept="video/mp4,video/webm,video/quicktime" data-vid="${k}"></label>`:''}</div></div>`; }).join('')}</div>`;
 }
 
 /* ===================== Programme ===================== */
