@@ -151,6 +151,46 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 .guided.rest .count{color:var(--ink)}
 .progressline{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:12px}
 .progressline i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.guided,.guided *,.card,.ex>div{min-width:0;max-width:100%}
+.guided .exname,.guided .cue,.guided .rx,.ex .name,.ex .cue{overflow-wrap:anywhere;white-space:normal}
+.gf{position:fixed;inset:0;z-index:14;background:var(--bg);color:var(--ink);display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.gf.show{display:flex}
+.gf-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 8px;font-size:13px;color:var(--ink-2);font-weight:600}
+.gf-top #gfElapsed{font-variant-numeric:tabular-nums}
+.gf-top button{font-size:18px;opacity:.9;padding:2px 6px}
+.gf-top button.off{opacity:.35}
+.gf-body{flex:1;overflow-y:auto;padding:14px 16px 18px;text-align:center;-webkit-overflow-scrolling:touch}
+.gf .lbl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+.gf .count{font-variation-settings:"wdth" 70;font-weight:900;font-size:min(88px,22vw);line-height:1;color:var(--accent);margin:4px 0 8px;font-variant-numeric:tabular-nums}
+.gf.rest .count{color:var(--ink)}
+.gf .exname{font-variation-settings:"wdth" 75;font-weight:900;font-size:30px;line-height:1.05;margin:8px 0 4px;overflow-wrap:anywhere}
+.gf .rx{font-size:18px;font-weight:700}
+.gf .cue{font-size:15px;color:var(--ink-2);margin:8px auto 0;max-width:38ch;line-height:1.45}
+.gf .gvid{margin:14px auto 0}
+.gf .thumb{display:block;max-width:220px;margin:14px auto 0;border-radius:12px;border:1px solid var(--line);cursor:zoom-in}
+.gf .how{max-width:38ch;margin:12px auto 0}
+.gf .loadf{margin-top:12px}
+.gf .reco{max-width:38ch;margin:6px auto 0}
+.gf .nextcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:14px 0 0;text-align:left}
+.gf .nextcard .exname{font-size:24px;margin:4px 0 2px}
+.gf .nextcard .cue{margin:6px 0 0;max-width:none}
+.fb{margin:10px 0 0}
+.fb .row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.fb button{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 4px;font-weight:700;font-size:13px}
+.fb button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.gf .fb{margin:16px 0 0}
+.gf .fb .row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.gf .fb button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 6px;font-weight:700;font-size:14px}
+.gf .fb button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.gf-actions{padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface);display:grid;gap:8px}
+.gf-actions .btn{width:100%;min-height:54px;font-size:18px}
+.gf-actions .small-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gf-actions .small-row .btn{min-height:42px;font-size:14px}
+.gf .timerbox{margin-top:14px}
+.reco{font-size:12.5px;margin-top:4px;font-weight:600;color:var(--ink-2)}
+.reco.up{color:var(--ok)}.reco.dn{color:var(--warn)}
+.recap .ex{grid-template-columns:28px 1fr 0}
+.recap h3{margin:4px 0 6px}
 .how{margin-top:8px;font-size:13.5px;text-align:left}
 .how summary{font-weight:700;color:var(--accent);font-size:13px;cursor:pointer;list-style:none}
 .how summary::before{content:'▸ '}
@@ -207,6 +247,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
   <div class="row"><button id="restplus">+30 s</button><button id="reststop">Stop</button></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<div class="gf" id="gf" role="dialog" aria-modal="true"><div class="gf-top"><span id="gfLeft"></span><span id="gfElapsed">0:00</span><button id="gfVoice" aria-label="Voix">🔊</button></div><div class="progressline" style="margin:0 16px"><i id="gfBar" style="width:0%"></i></div><div class="gf-body" id="gfBody"></div><div class="gf-actions" id="gfActions"></div></div>
 <div class="prep" id="prep" role="dialog" aria-modal="true"><div class="box"><div class="kicker" id="prepKick"></div><h3 id="prepTitle"></h3><div id="prepLines"></div><div class="btns"><button class="btn" id="prepGo">Let's go</button><button class="btn ghost small" id="prepCancel">Not now</button></div></div></div>
 <div class="focus" id="focus" role="dialog" aria-modal="true"><div class="lbl meta" id="fTitle"></div><div class="ftimer" id="fTimer">0:00</div><div class="frounds"><div><div class="meta">Rounds</div><b id="fRounds">0</b></div><div class="row"><button class="btn ghost small" id="fMinus" aria-label="Remove a round">−1</button><button class="btn" id="fPlus">+1 round</button></div></div><ol id="fList"></ol><div class="fbtns"><button class="btn ghost" id="fPause">Pause</button><button class="btn ghost" id="fQuit">Finish</button></div></div>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true"><div><img id="ovImg" alt=""><video id="ovVid" style="display:none;max-width:100%;max-height:70vh;border-radius:12px" controls loop muted playsinline></video><div class="cap" id="ovCap"></div><div class="row"><button id="ovDel">Delete image</button><button id="ovClose">Close</button></div></div></div>
@@ -365,7 +406,11 @@ let curDay=null;
 function gymOn(){ const d=curDay; if(!d) return state.place==='gym'; const o=(state.placeByDay||{})[d.id]; if(o) return o==='gym'; return d.placeDefault==='gym'; }
 function bx(b){ return (gymOn() && b.g) ? b.g : b; }
 function placeChips(){ return `<div class="chips" style="padding-top:0"><button class="chip" aria-pressed="${!gymOn()}" data-place="home">Home · 12 kg KB</button><button class="chip" aria-pressed="${gymOn()}" data-place="gym">Gym</button>${expressChip()}</div>`; }
-function loadField(k){ state.loads=state.loads||{}; const v=state.loads[k]; return `<label class="loadf"><span>Load</span><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${v!=null?v:''}" data-load="${k}"></label>`; }
+const LOWER = new Set(['backsquat','frontsquat','legpress','rdl','hipthrustbar','smithhipthrust','walkinglunge','bulgare','legcurl','stepupdb','hipthrustmachine','hipthrust1g','kbswing16']);
+function recoFor(k){ const r=(state.lastRpe||{})[k]; if(!r || r.load==null) return ''; const step=LOWER.has(k)?5:2.5; let txt, cls='eq';
+  if(r.rpe<=6){ txt='try '+(r.load+step)+' kg ▲'; cls='up'; } else if(r.rpe>=9){ txt='go down to '+Math.max(0,r.load-step)+' kg ▼'; cls='dn'; } else { txt='keep '+r.load+' kg ='; }
+  return `<div class="reco ${cls}">Last time : ${r.load} kg · ${r.rpe}/10 → ${txt}</div>`; }
+function loadField(k){ state.loads=state.loads||{}; const v=state.loads[k]; return `<label class="loadf"><span>Load</span><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${v!=null?v:''}" data-load="${k}"></label>${recoFor(k)}`; }
 function bindPlace(root){
   root.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>{ state.placeByDay=state.placeByDay||{}; if(curDay) state.placeByDay[curDay.id]=b.dataset.place; state.place=b.dataset.place; persist(); if(guided.active) stopGuided(); rerender(); });
   root.querySelectorAll('[data-express]').forEach(b=>b.onclick=()=>{ state.express=!state.express; persist(); if(guided.active) stopGuided(); stopBig(); rerender(); });
@@ -460,7 +505,7 @@ function renderToday(){
     const deload = (w===4||w===8);
     if(deload && day.kind==='sets') html += `<p class="pill warn">Lighter week: one set fewer per exercise</p>`;
     if(gymOn() && day.kind==='sets') html += `<p class="note">Gym: pick a load that leaves 2 reps in the tank on the last set. All reps completed two sessions in a row → +2.5 kg (upper body) or +5 kg (lower body). Log your load under each exercise.</p>`;
-    if(guided.active && guided.week===w && guided.day===dIdx){ html += renderGuided(day, ph); }
+    if(guided.finished && guided.week===w && guided.day===dIdx){ html += renderRecap(day, ph, w); }
     else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${(gymOn()&&b0.g)?loadField(b.k):''}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>`; }).join('')+`</div>`;
   }
   if(day.kind==='amrap'){
@@ -480,7 +525,7 @@ function renderToday(){
   if(day.kind==='rest'){
     html += `<div class="card"><ul class="plain">${day.list.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
   }
-  if(day.kind!=='rest' && state.start && !isDone(w,day.id)){
+  if(day.kind!=='rest' && state.start && !isDone(w,day.id) && !(guided.active||guided.finished)){
     html += `<div class="card"><h3>Finish the session</h3><div class="stack">
       <label class="field"><span>How hard did it feel? (1 easy – 10 all-out)</span><input type="range" min="1" max="10" value="7" id="rpe" style="padding:0"></label>
       <label class="field"><span>Note (load, how it felt, what got in the way…)</span><input type="text" id="snote" placeholder="e.g. hip thrusts felt easy, go heavier"></label>
@@ -499,9 +544,11 @@ function renderToday(){
   app.querySelectorAll('[data-check]').forEach(b=>b.onclick=()=>{ const k=sessionKey(w,day.id); const arr=state.checks[k]||[]; arr[+b.dataset.check]=!arr[+b.dataset.check]; state.checks[k]=arr; persist(); renderToday(); });
   app.querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>startRest(+b.dataset.rest));
   const fb=document.getElementById('finishBtn'); if(fb) fb.onclick=()=>{
-    const rounds = big.rounds || 0;
-    state.sessions.push({key:sessionKey(w,day.id), week:w, day:day.id, place:gymOn()?'gym':'home', date:iso(new Date()), rpe:+document.getElementById('rpe').value, note:document.getElementById('snote').value.trim(), rounds:rounds||undefined, time: (day.kind==='rounds' && big.elapsed)? big.elapsed : (day.kind==='amrap' && big.started ? big.secs-big.remaining : undefined), score: sessionScore(day, ph, w, rounds, (day.kind==='rounds'&&big.elapsed)?big.elapsed:0)});
-    persist(); stopBig(); toast('Session saved'); renderToday();
+    const rounds = big.rounds || 0; const durMin = guided.finished ? Math.max(1,Math.round((guided.endedAt-guided.startedAt)/60000)) : undefined;
+    state.sessions.push({key:sessionKey(w,day.id), week:w, day:day.id, place:gymOn()?'gym':'home', date:iso(new Date()), rpe:+document.getElementById('rpe').value, note:document.getElementById('snote').value.trim(), dur:durMin, rounds:rounds||undefined, time: (day.kind==='rounds' && big.elapsed)? big.elapsed : (day.kind==='amrap' && big.started ? big.secs-big.remaining : undefined), score: sessionScore(day, ph, w, rounds, (day.kind==='rounds'&&big.elapsed)?big.elapsed:0)});
+    const rpeV=+document.getElementById('rpe').value; state.lastRpe=state.lastRpe||{}; state.loadLog=state.loadLog||{}; const FBR={easy:5,ok:7,hard:9};
+    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false) return; const fb=(guided.fb||{})[i]; const r = fb?FBR[fb]:rpeV; if(gymOn()&&b0.g&&state.loads&&state.loads[b.k]!=null){ state.lastRpe[b.k]={rpe:r, load:state.loads[b.k], date:iso(new Date()), fb:fb||null}; (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } }); }
+    persist(); stopBig(); if(guided.finished) stopGuided(); toast('Session saved'); renderToday();
   };
   const ub=document.getElementById('undoBtn'); if(ub) ub.onclick=()=>{ state.sessions=state.sessions.filter(s=>s.key!==sessionKey(w,day.id)); persist(); renderToday(); };
   big.day=day; big.ph=ph; bindBig(); bindImages(app); bindGuided(); bindPlace(app);
@@ -535,52 +582,114 @@ document.getElementById('prepGo').onclick=()=>{ document.getElementById('prep').
 document.getElementById('prepCancel').onclick=()=>{ document.getElementById('prep').classList.remove('show'); prepCb=null; };
 
 /* ===================== Mode guidé ===================== */
-let guided = {active:false, week:null, day:null, seq:[], pos:0, restLeft:0, int:null, wake:null};
+let guided = {active:false, finished:false, week:null, day:null, seq:[], pos:0, restLeft:0, int:null, wake:null, done:new Set(), startedAt:0, endedAt:0, work:{left:0,int:null,running:false}};
 function setsOf(rx){ const m=/^(\d+)\s*×/.exec(rx); return m?+m[1]:1; }
+function timedSecs(rx){ let m=/×\s*(\d+)\s*(min|s)\b/.exec(rx); if(!m) m=/^(\d+)\s*(min)\b/.exec(rx); if(!m) return 0; return m[2]==='min'? +m[1]*60 : +m[1]; }
 function buildSeq(day, ph, w){
   const seq=[]; const restSecs=restFor(day,ph);
   activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const n=setsFor(b,ph,w,day); for(let s=1;s<=n;s++){ seq.push({t:'work',i,s,n}); seq.push({t:'rest',i,s,n,secs:restSecs}); } });
   seq.pop(); return seq;
 }
 function startGuided(day, ph, w, dIdx){
-  guided={active:true, week:w, day:dIdx, seq:buildSeq(day,ph,w), pos:0, restLeft:0, int:null, wake:null};
+  guided={active:true, finished:false, week:w, day:dIdx, seq:buildSeq(day,ph,w), pos:0, restLeft:0, int:null, wake:null, done:new Set(), startedAt:Date.now(), endedAt:0, work:{left:0,int:null,running:false}, fb:{}, elapsedInt:null};
   try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(l=>guided.wake=l).catch(()=>{}); }catch(e){}
-  renderToday();
+  guided.elapsedInt=setInterval(()=>{ const el=document.getElementById('gfElapsed'); if(el) el.textContent=fmt((Date.now()-guided.startedAt)/1000); },1000);
+  document.getElementById('gf').classList.add('show'); drawGuided(); say('Go');
 }
-function stopGuided(){ clearInterval(guided.int); if(guided.wake){ try{guided.wake.release();}catch(e){} } guided.active=false; }
+function clearGuidedTimers(){ clearInterval(guided.int); clearInterval(guided.work.int); guided.work.running=false; }
+function closeGf(){ document.getElementById('gf').classList.remove('show'); clearInterval(guided.elapsedInt); try{ speechSynthesis.cancel(); }catch(e){} }
+function stopGuided(){ clearGuidedTimers(); closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} } guided.active=false; guided.finished=false; }
+function markCheck(i,val){ const day=DAYS[guided.day]; const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[i]=val; state.checks[k]=arr; persist(); }
+function say(text){ if(state.voice===false) return; try{ if(!window.speechSynthesis) return; const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
+function countdownCue(left){ if(state.voice!==false){ if(left===3) say('3'); else if(left===2) say('2'); else if(left===1) say('1'); } else if(left>0 && left<=5) tickBeep(); }
 function guidedNext(){
-  clearInterval(guided.int);
-  const day=DAYS[guided.day]; const cur=guided.seq[guided.pos];
-  if(cur && cur.t==='work' && cur.s===cur.n){ const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[cur.i]=true; state.checks[k]=arr; persist(); }
+  clearGuidedTimers();
+  const cur=guided.seq[guided.pos];
+  if(cur && cur.t==='work'){ guided.done.add(guided.pos); if(cur.s===cur.n) markCheck(cur.i,true); }
   guided.pos++;
-  if(guided.pos>=guided.seq.length){ stopGuided(); beep(3); toast('Session complete, save it'); renderToday(); return; }
+  if(guided.pos>=guided.seq.length){ finishGuided(); return; }
   const st=guided.seq[guided.pos];
-  if(st.t==='rest'){ guided.restLeft=st.secs; guided.int=setInterval(()=>{ guided.restLeft--; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(guided.restLeft); if(guided.restLeft<=0){ beep(2); guidedNext(); } },1000); }
-  renderToday();
+  if(st.t==='rest'){
+    guided.restLeft=st.secs;
+    const day=DAYS[guided.day]; const nxt=guided.seq.slice(guided.pos+1).find(x=>x.t==='work'); const nb=nxt?bx(day.blocks[nxt.i]):null;
+    if(st.s===st.n && nb) setTimeout(()=>say('Next exercise: '+nb.n), 700);
+    guided.int=setInterval(()=>{ guided.restLeft--; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(guided.restLeft); countdownCue(guided.restLeft); if(guided.restLeft<=0){ if(state.voice!==false) say('Go'); else beep(2); guidedNext(); } },1000);
+  }
+  drawGuided();
 }
-function guidedSkipExercise(){ clearInterval(guided.int); const cur=guided.seq[guided.pos]; let p=guided.pos; while(p<guided.seq.length && guided.seq[p].i===cur.i) p++; guided.pos=p-1; guidedNext(); }
-function renderGuided(day, ph){
-  const w=guided.week; const st=guided.seq[guided.pos]; const b0=day.blocks[st.i]; const b=bx(b0); const pct=Math.round(100*guided.pos/guided.seq.length);
+function guidedPrev(){
+  clearGuidedTimers();
+  const seq=guided.seq; const cur=seq[guided.pos];
+  if(guided.pos===0) { drawGuided(); return; }
+  if(cur.t==='rest'){ guided.pos--; guided.done.delete(guided.pos); drawGuided(); return; }
+  if(cur.s>1){ let p=guided.pos-1; while(p>0 && seq[p].t!=='work') p--; guided.pos=p; guided.done.delete(p); drawGuided(); return; }
+  const prevI = Math.max(...seq.filter((x,idx)=>idx<guided.pos && x.t==='work').map(x=>x.i));
+  if(!isFinite(prevI)){ drawGuided(); return; }
+  const steps = seq.map((x,idx)=>({x,idx})).filter(o=>o.x.t==='work' && o.x.i===prevI).map(o=>o.idx);
+  const firstUndone = steps.find(idx=>!guided.done.has(idx));
+  if(firstUndone!=null){ guided.pos=firstUndone; } else { guided.pos=steps[steps.length-1]; guided.done.delete(guided.pos); }
+  markCheck(prevI,false); drawGuided();
+}
+function guidedSkipExercise(){ clearGuidedTimers(); const cur=guided.seq[guided.pos]; let p=guided.pos; while(p<guided.seq.length && guided.seq[p].i===cur.i) p++; guided.pos=p; if(guided.pos>=guided.seq.length){ finishGuided(); return; } const st=guided.seq[guided.pos]; if(st.t==='rest'){ guided.pos++; } if(guided.pos>=guided.seq.length){ finishGuided(); return; } drawGuided(); }
+function startWorkTimer(secs){
+  clearInterval(guided.work.int); guided.work.left=secs; guided.work.running=true; say('Go');
+  guided.work.int=setInterval(()=>{ guided.work.left--; const el=document.getElementById('gWork'); if(el) el.textContent=fmt(guided.work.left); countdownCue(guided.work.left); if(guided.work.left<=0){ clearInterval(guided.work.int); guided.work.running=false; beep(2); guidedNext(); } },1000);
+  const btn=document.getElementById('gTimerStart'); if(btn){ btn.textContent='Running…'; btn.disabled=true; }
+}
+function finishGuided(){ clearGuidedTimers(); guided.finished=true; guided.endedAt=Date.now(); beep(3); closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} } renderToday(); }
+function fbButtons(i){ const v=guided.fb[i]||''; return `<div class="fb"><div class="lbl">How was that exercise?</div><div class="row"><button data-fb="easy" data-i="${i}" aria-pressed="${v==='easy'}">Too easy</button><button data-fb="ok" data-i="${i}" aria-pressed="${v==='ok'}">Right</button><button data-fb="hard" data-i="${i}" aria-pressed="${v==='hard'}">Too hard</button></div><div class="note" style="margin-top:6px">Drives next time\'s recommended load.</div></div>`; }
+function drawGuided(){
+  if(!guided.active) return;
+  const day=DAYS[guided.day]; const w=guided.week; const ph=phaseOf(w); curDay=day;
+  const st=guided.seq[guided.pos]; const b0=day.blocks[st.i]; const b=bx(b0); const pct=Math.round(100*guided.pos/guided.seq.length);
+  const exIdx=[...new Set(guided.seq.filter(x=>x.t==='work').map(x=>x.i))]; const exNo=exIdx.indexOf(st.i)+1;
   const thumb=k=>{ if(vidSrc(k)) return vidTag(k,'gvid'); const s=imgSrc(k); return s?`<img class="thumb" src="${s}" alt="${esc(LIBMAP[k]||'')}" data-view="${k}" onerror="this.remove()">`:''; };
-  let html=`<div class="progressline"><i style="width:${pct}%"></i></div>`;
+  document.getElementById('gfLeft').textContent=`Exercise ${exNo}/${exIdx.length} · ${day.title}`;
+  document.getElementById('gfBar').style.width=pct+'%';
+  const vb=document.getElementById('gfVoice'); vb.classList.toggle('off', state.voice===false); vb.textContent = state.voice===false?'🔇':'🔊';
+  const gf=document.getElementById('gf'); gf.classList.toggle('rest', st.t==='rest');
+  let body='', actions='';
   if(st.t==='work'){
-    html+=`<div class="guided"><div class="lbl">Set</div><div class="count">${st.s}/${st.n}</div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${(gymOn()&&b0.g)?loadField(b.k):''}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}
-    <div class="btns"><button class="btn" id="gNext">Set done${guided.pos===guided.seq.length-1?' · finish':''}</button><div class="row" style="justify-content:center"><button class="btn ghost small" id="gSkip">Skip exercise</button><button class="btn ghost small" id="gQuit">Quit</button></div></div></div>`;
+    const rx=rxShow(b,ph,w,day); const secs=timedSecs(rx);
+    body=`<div class="lbl">Set ${st.s} / ${st.n}</div><div class="count">${st.s}<span style="font-size:.45em;opacity:.5">/${st.n}</span></div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rx)}</div><div class="cue">${esc(b.cue)}</div>${(gymOn()&&b0.g)?loadField(b.k):''}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}`;
+    if(secs) body+=`<div class="timerbox"><div class="lbl">Hold</div><div class="count" id="gWork">${fmt(guided.work.running?guided.work.left:secs)}</div></div>`;
+    actions = (secs?`<button class="btn" id="gTimerStart" data-secs="${secs}" ${guided.work.running?'disabled':''}>${guided.work.running?'Running…':'Start timer'}</button>`:'') +
+      `<button class="btn ${secs?'ghost':''}" id="gNext">${guided.pos===guided.seq.length-1?'Finish':'Set done'}</button><div class="small-row"><button class="btn ghost" id="gPrev" ${guided.pos===0?'disabled':''}>Back</button><button class="btn ghost" id="gSkip">Skip</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
   } else {
     const nxt=guided.seq.slice(guided.pos+1).find(x=>x.t==='work' && x.i!==st.i); const nb0=nxt?day.blocks[nxt.i]:null; const nb=nb0?bx(nb0):null; const last=(st.s===st.n);
-    html+=`<div class="guided rest"><div class="lbl">Rest</div><div class="count" id="gCount">${fmt(guided.restLeft)}</div>`;
-    if(last && nb){ html+=`<div class="next"><div class="lbl">Next exercise</div><div class="exname">${esc(nb.n)}</div><div class="rx">${esc(rxShow(nb,ph,w,day))}</div><div class="cue" style="margin:6px 0 0;max-width:none">${esc(nb.cue)}</div>${nb.k?thumb(nb.k):''}</div>`; }
-    else { html+=`<div class="lbl" style="margin-top:8px">Next: set ${st.s+1}/${st.n} · ${esc(b.n)}</div>`; }
-    html+=`<div class="btns"><button class="btn" id="gNext">Skip rest</button><div class="row" style="justify-content:center"><button class="btn ghost small" id="gPlus">+30 s</button><button class="btn ghost small" id="gQuit">Quit</button></div></div></div>`;
+    body=`<div class="lbl">Rest</div><div class="count" id="gCount">${fmt(guided.restLeft)}</div>`;
+    if(last){ body+=fbButtons(st.i); }
+    if(last && nb){ body+=`<div class="nextcard"><div class="lbl">Next exercise</div><div class="exname">${esc(nb.n)}</div><div class="rx">${esc(rxShow(nb,ph,w,day))}</div><div class="cue">${esc(nb.cue)}</div>${(gymOn()&&nb0.g)?recoFor(nb.k):''}${nb.k?thumb(nb.k):''}</div>`; }
+    else if(!last){ body+=`<div class="nextcard"><div class="lbl">Next: set ${st.s+1}/${st.n}</div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div></div>`; }
+    actions=`<button class="btn" id="gNext">Skip rest</button><div class="small-row"><button class="btn ghost" id="gPlus">+30 s</button><button class="btn ghost" id="gPrev">Back</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
   }
-  return html;
+  document.getElementById('gfBody').innerHTML=body; document.getElementById('gfActions').innerHTML=actions; document.getElementById('gfBody').scrollTop=0;
+  bindGuided(gf); bindImages(gf); bindPlace(gf);
 }
-function bindGuided(){
-  const n=document.getElementById('gNext'); if(n) n.onclick=guidedNext;
-  const s=document.getElementById('gSkip'); if(s) s.onclick=guidedSkipExercise;
-  const q=document.getElementById('gQuit'); if(q) q.onclick=()=>{ if(confirm('Quit guided mode? Completed exercises stay checked.')){ stopGuided(); renderToday(); } };
-  const pl=document.getElementById('gPlus'); if(pl) pl.onclick=()=>{ guided.restLeft+=30; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(guided.restLeft); };
+function renderGuided(){ return ''; }
+function renderRecap(day, ph, w){
+  const mins=Math.max(1,Math.round((guided.endedAt-guided.startedAt)/60000));
+  const k=sessionKey(w,day.id); const checks=state.checks[k]||[];
+  const rows=activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); const n=setsFor(b,ph,w,day); const doneSets=guided.seq.filter((x,idx)=>x.t==='work'&&x.i===i&&guided.done.has(idx)).length; const on=checks[i]!==false && doneSets>0;
+    return `<div class="ex ${on?'on':''}"><button class="chk" data-rcheck="${i}" aria-label="${esc(b.n)}">${on?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${doneSets}/${n} sets${doneSets===0?' · skipped':''}</div>${(gymOn()&&b0.g)?loadField(b.k):''}${fbButtons(i)}</div><span></span></div>`; }).join('');
+  return `<div class="card recap"><div class="lbl meta">${esc(day.name)} · ${esc(day.title)}</div><h3 class="display" style="font-size:30px">Session complete</h3><div class="pills"><span class="pill">Duration ${mins} min</span><span class="pill">${guided.done.size} sets</span></div><p class="note">Fix anything if needed: uncheck an exercise you didn\'t do, adjust a load.</p>${rows}<hr>
+    <div class="stack"><label class="field"><span>How hard did it feel? (1 easy – 10 all-out)</span><input type="range" min="1" max="10" value="7" id="rpe" style="padding:0"><span class="note" id="rpeVal">7/10</span></label><p class="note">Your answer drives the load recommendation for next session.</p>
+    <label class="field"><span>Note</span><input type="text" id="snote" placeholder="…"></label>
+    <button class="btn" id="finishBtn">Save the session</button><button class="btn ghost small" id="discardBtn">Discard without saving</button></div></div>`;
 }
+function bindGuided(root){ root=root||document;
+  const n=root.querySelector('#gNext'); if(n) n.onclick=guidedNext;
+  const s=root.querySelector('#gSkip'); if(s) s.onclick=guidedSkipExercise;
+  const p=root.querySelector('#gPrev'); if(p) p.onclick=guidedPrev;
+  const ts=root.querySelector('#gTimerStart'); if(ts) ts.onclick=()=>startWorkTimer(+ts.dataset.secs);
+  const q=root.querySelector('#gQuit'); if(q) q.onclick=()=>{ if(confirm('Quit guided mode? Completed exercises stay checked.')){ stopGuided(); renderToday(); } };
+  const pl=root.querySelector('#gPlus'); if(pl) pl.onclick=()=>{ guided.restLeft+=30; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(guided.restLeft); };
+  const r=document.getElementById('rpe'); if(r){ r.oninput=()=>{ const v=document.getElementById('rpeVal'); if(v) v.textContent=r.value+'/10'; }; }
+  root.querySelectorAll('[data-rcheck]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.rcheck; const day=DAYS[guided.day]; const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[i]=!(arr[i]!==false && b.textContent==='✓'); state.checks[k]=arr; persist(); if(!arr[i]){ guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.delete(idx); }); } else { guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.add(idx); }); } renderToday(); });
+  const d=document.getElementById('discardBtn'); if(d) d.onclick=()=>{ if(confirm('Discard this session? Nothing will be saved.')){ stopGuided(); renderToday(); } };
+  root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=()=>{ guided.fb[+b.dataset.i]=b.dataset.fb; root.querySelectorAll('[data-fb][data-i="'+b.dataset.i+'"]').forEach(x=>x.setAttribute('aria-pressed', x===b)); });
+}
+document.getElementById('gfVoice').onclick=()=>{ state.voice = state.voice===false ? true : false; persist(); if(guided.active) drawGuided(); };
 
 /* ===================== Gros chrono (AMRAP / metcon) ===================== */
 let big = {int:null, remaining:0, elapsed:0, countdown:true, rounds:0, running:false, started:false, secs:0, day:null, ph:0, wake:null};
@@ -597,7 +706,7 @@ function bindBig(){
   document.getElementById('rPlus').onclick=()=>{ big.rounds++; drawBig(); };
   document.getElementById('rMinus').onclick=()=>{ big.rounds=Math.max(0,big.rounds-1); drawBig(); };
 }
-function tick(){ if(big.running) return; big.running=true; big.started=true; big.int=setInterval(()=>{ if(big.countdown){ big.remaining--; if(big.remaining<=0){ clearInterval(big.int); big.running=false; big.remaining=0; beep(3); } } else big.elapsed++; drawBig(); },1000); drawBig(); }
+function tick(){ if(big.running) return; big.running=true; big.started=true; big.int=setInterval(()=>{ if(big.countdown){ big.remaining--; if(big.remaining>0 && big.remaining<=5) tickBeep(); if(big.remaining<=0){ clearInterval(big.int); big.running=false; big.remaining=0; beep(3); } } else big.elapsed++; drawBig(); },1000); drawBig(); }
 function pauseBig(){ clearInterval(big.int); big.running=false; drawBig(); }
 function resetBig(){ clearInterval(big.int); big.running=false; big.started=false; big.remaining=big.secs; big.elapsed=0; big.rounds=0; drawBig(); }
 function drawBig(){ const v=big.countdown? fmt(big.remaining) : fmt(big.elapsed); const capS = (!big.countdown && big.day && big.day.cap) ? (expressOn()?Math.min(big.day.cap[big.ph],17):big.day.cap[big.ph])*60 : 0; const over = capS>0 && big.elapsed>=capS; if(over && !big.overBeeped){ big.overBeeped=true; beep(3); } if(!over) big.overBeeped=false;
@@ -624,9 +733,10 @@ function stopBig(){ clearInterval(big.int); big.running=false; big.started=false
 let rest = {int:null, left:0};
 const restbar=document.getElementById('restbar'), restnum=document.getElementById('restnum');
 function startRest(s){ clearInterval(rest.int); rest.left=s; restbar.classList.add('show'); restnum.textContent=fmt(rest.left);
-  rest.int=setInterval(()=>{ rest.left--; restnum.textContent=fmt(rest.left); if(rest.left<=0){ clearInterval(rest.int); beep(2); setTimeout(()=>restbar.classList.remove('show'),1200); } },1000); }
+  rest.int=setInterval(()=>{ rest.left--; restnum.textContent=fmt(rest.left); if(rest.left>0 && rest.left<=5) tickBeep(); if(rest.left<=0){ clearInterval(rest.int); beep(2); setTimeout(()=>restbar.classList.remove('show'),1200); } },1000); }
 document.getElementById('restplus').onclick=()=>{ rest.left+=30; restnum.textContent=fmt(rest.left); };
 document.getElementById('reststop').onclick=()=>{ clearInterval(rest.int); restbar.classList.remove('show'); };
+function tickBeep(){ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const o=actx.createOscillator(), g=actx.createGain(); o.frequency.value=660; o.connect(g); g.connect(actx.destination); const t=actx.currentTime; g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.12); o.start(t); o.stop(t+0.12); }catch(e){} }
 let actx=null;
 function beep(n){ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); for(let i=0;i<n;i++){ const o=actx.createOscillator(), g=actx.createGain(); o.frequency.value=880; o.connect(g); g.connect(actx.destination); const t=actx.currentTime+i*0.25; g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.2); o.start(t); o.stop(t+0.2); } }catch(e){} }
 
@@ -740,6 +850,12 @@ function renderProgress(){
   for(let wk=1;wk<=12;wk++){ html += `<span class="wk">W${wk}</span>`; DAYS.slice(0,6).forEach(d=>{ html += `<span class="cell ${isDone(wk,d.id)?'on':''} ${d.opt?'opt':''} ${state.start&&wk===w?'cur':''}">${scoreArrow(wk,d.id)}</span>`; }); }
   html += `</div></div>`;
 
+  // streak of consecutive weeks with >= NDAYS key sessions (ending at last full week)
+  let streak=0; for(let wk=(w>0?w-1:0); wk>=1; wk--){ const n=state.sessions.filter(s=>s.week===wk && !(DAYS.find(d=>d.id===s.day)||{}).opt).length; if(n>=NDAYS) streak++; else break; }
+  const wkSess=state.sessions.filter(s=>s.week===w); const wkMin=wkSess.reduce((t,s)=>t+(s.dur||0),0); const wkTon=wkSess.reduce((t,s)=>t+((s.score&&DAYS.find(d=>d.id===s.day)&&DAYS.find(d=>d.id===s.day).kind==='sets')?s.score:0),0);
+  html += `<div class="card"><h3>This week</h3><div class="kpi"><div><b>${wkSess.length}</b><span>sessions</span></div><div><b>${wkMin}</b><span>min of training</span></div><div><b>${streak}</b><span>weeks in a row (≥ 3 key sessions)</span></div></div></div>`;
+  const logKeys=Object.keys(state.loadLog||{}).filter(k=>(state.loadLog[k]||[]).length);
+  if(logKeys.length){ html += `<div class="card"><h3>Loads per exercise</h3><p class="note">Tap an exercise to see its curve. Loads come from your saved sessions.</p>${logKeys.map(k=>{ const L=state.loadLog[k]; const lastL=L[L.length-1]; return `<details class="how"><summary>${esc(LIBMAP[k]||k)} · ${lastL.load} kg</summary>${loadChart(k)}</details>`; }).join('')}</div>`; }
   const last = state.tests[state.tests.length-1];
   html += `<div class="card"><h3>Tests</h3><p class="note">Do them before you start (week 0), then on the Sunday of weeks 4, 8 and 12. Warm up, rest 3 min between tests.</p>
   <div class="stack">
@@ -759,7 +875,7 @@ function renderProgress(){
     state.sessions.slice(-8).reverse().forEach(s=>{ const d=DAYS.find(x=>x.id===s.day); html += `<tr><td>${esc(s.date)}</td><td>W${s.week} ${esc(d?d.title:s.day)}${s.rounds?` · ${s.rounds} rds`:''}${s.time?` · ${fmt(s.time)}`:''}</td><td>${s.rpe}</td><td>${esc(s.note||'')}</td></tr>`; });
     html += `</table></div></div>`;
   }
-  html += `<div class="card"><h3>Data</h3><p class="note">Your sessions and tests are saved for you only.</p><label class="field" style="margin-bottom:10px"><span>Program start Monday</span><input type="date" id="startIn" value="${state.start||''}"></label><button class="btn ghost small" id="resetAll">Erase everything</button></div>`;
+  html += `<div class="card"><h3>Data</h3><p class="note">Your sessions and tests are saved for you only.</p><label class="field" style="margin-bottom:10px"><span>Program start Monday</span><input type="date" id="startIn" value="${state.start||''}"></label><p class="note">Safari and the home-screen icon each keep their own storage. To move your sessions from one to the other: « Copy my data » on one side, « Import » on the other.</p><div class="row" style="margin-bottom:12px"><button class="btn ghost small" id="exportBtn">Copy my data</button><button class="btn ghost small" id="importBtn">Import data</button></div><button class="btn ghost small" id="resetAll">Erase everything</button></div>`;
   app.innerHTML = html;
   document.getElementById('saveTest').onclick=()=>{
     const t={week:+document.getElementById('tWeek').value, date:iso(new Date())};
@@ -768,9 +884,12 @@ function renderProgress(){
     state.tests.push(t); state.tests.sort((a,b)=>a.week-b.week); persist(); toast('Tests saved'); renderProgress();
   };
   app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ state.tests.splice(+b.dataset.del,1); persist(); renderProgress(); });
+  const eb=document.getElementById('exportBtn'); if(eb) eb.onclick=async()=>{ const txt=JSON.stringify(state); try{ await navigator.clipboard.writeText(txt); toast('Data copied to the clipboard'); }catch(e){ prompt('Copy my data', txt); } };
+  const ib=document.getElementById('importBtn'); if(ib) ib.onclick=()=>{ const txt=prompt('Paste here the data copied from the other version of the app:'); if(!txt) return; try{ const d=JSON.parse(txt); if(!d||typeof d!=='object'||!Array.isArray(d.sessions)) throw 0; const keys={}; (state.sessions||[]).forEach(s=>keys[s.key]=1); d.sessions.forEach(s=>{ if(!keys[s.key]) state.sessions.push(s); }); state.tests=[...(state.tests||[]),...(d.tests||[]).filter(t=>!(state.tests||[]).some(x=>x.week===t.week&&x.date===t.date))].sort((a,b)=>a.week-b.week); state.loads=Object.assign({},d.loads||{},state.loads||{}); state.lastRpe=Object.assign({},d.lastRpe||{},state.lastRpe||{}); state.checks=Object.assign({},d.checks||{},state.checks||{}); if(!state.start&&d.start) state.start=d.start; if(d.cycle) state.cycle=Math.max(state.cycle||1,d.cycle); persist(); toast('Data imported'); render(); }catch(e){ toast('Unreadable data'); } };
   const si=document.getElementById('startIn'); if(si) si.onchange=e=>{ if(e.target.value){ state.start=iso(mondayOf(new Date(e.target.value+'T00:00:00'))); persist(); render(); } };
   document.getElementById('resetAll').onclick=()=>{ if(confirm('Erase all history and start over?')){ state={start:null, weight:state.weight, checks:{}, sessions:[], tests:[], amrapRounds:{}, images:state.images||{}, place:state.place, loads:state.loads||{}, cycle:1}; persist(); render(); } };
 }
+function loadChart(k){ const L=(state.loadLog||{})[k]||[]; if(L.length<2) return `<p class="note">${L.length?L[0].d+' · '+L[0].load+' kg':''}</p>`; const W=320,H=110,p=18; const vals=L.map(x=>x.load); let mn=Math.min(...vals), mx=Math.max(...vals); if(mx===mn){mx+=1;mn-=1;} const x=i=>p+i*(W-2*p)/(L.length-1), y=v=>H-p-(v-mn)*(H-2*p)/(mx-mn); return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img"><polyline points="${L.map((t,i)=>`${x(i)},${y(t.load)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>${L.map((t,i)=>`<circle cx="${x(i)}" cy="${y(t.load)}" r="4" fill="var(--accent)"/><text x="${x(i)}" y="${y(t.load)-9}" font-size="11" text-anchor="middle" fill="var(--ink)">${t.load}</text><text x="${x(i)}" y="${H-3}" font-size="10" text-anchor="middle" fill="var(--ink-2)">S${t.w}</text>`).join('')}</svg>`; }
 function chart(title,key){
   const pts = state.tests.filter(t=>t[key]!=null); if(pts.length<2) return '';
   const W=320,H=110,p=18; const vals=pts.map(t=>t[key]); let mn=Math.min(...vals), mx=Math.max(...vals); if(mx===mn){mx+=1;mn-=1;}
@@ -831,6 +950,9 @@ function renderFood(){
   app.innerHTML = html;
   document.getElementById('wIn').onchange=e=>{ state.weight=+e.target.value||62; persist(); renderFood(); };
 }
+
+/* ===================== Hors ligne ===================== */
+try{ if('serviceWorker' in navigator && location.protocol==='https:' && !/claude\.ai$|claudeusercontent|anthropic/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){}
 
 /* ===================== Divers ===================== */
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
