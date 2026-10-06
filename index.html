@@ -194,8 +194,10 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .fb.compact{margin:8px 0 0}
 .fb.compact .row{grid-template-columns:repeat(3,minmax(0,1fr));max-width:280px}
 .fb.compact button{padding:6px 4px;font-size:12.5px}
-.fb.compact .row{grid-template-columns:repeat(4,minmax(0,1fr));max-width:340px}
-.fb button.skipbtn{color:var(--ink-2);border-style:dashed}
+.fb.compact .row{display:flex;gap:0;max-width:360px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.fb.compact .row button{flex:1;border:0;border-radius:0;border-right:1px solid var(--line);padding:9px 2px;font-size:13px;white-space:nowrap;background:transparent}
+.fb.compact .row button:last-child{border-right:0}
+.fb button.skipbtn{color:var(--ink-2)}
 .fb button.skipbtn[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
 .ex.skipped .name{text-decoration:line-through;color:var(--ink-2)}
 .ex.skipped .chk{border-color:var(--warn);color:var(--warn)}
@@ -783,7 +785,7 @@ function bindGuided(root){ root=root||document;
   const r=document.getElementById('rpe'); if(r){ r.oninput=()=>{ const v=document.getElementById('rpeVal'); if(v) v.textContent=r.value+'/10'; }; }
   root.querySelectorAll('[data-rcheck]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.rcheck; const day=DAYS[guided.day]; const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[i]=!(arr[i]!==false && b.textContent==='✓'); state.checks[k]=arr; persist(); if(!arr[i]){ guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.delete(idx); }); } else { guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.add(idx); }); } renderToday(); });
   const d=document.getElementById('discardBtn'); if(d) d.onclick=()=>{ if(confirm('Discard this session? Nothing will be saved.')){ stopGuided(); renderToday(); } };
-  root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=()=>{ setFb(+b.dataset.i, b.dataset.fb); root.querySelectorAll('[data-fb][data-i="'+b.dataset.i+'"]').forEach(x=>x.setAttribute('aria-pressed', x===b)); });
+  root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=()=>{ const inG=(guided.active||guided.finished); setFb(+b.dataset.i, b.dataset.fb); if(inG){ root.querySelectorAll('[data-fb][data-i="'+b.dataset.i+'"]').forEach(x=>x.setAttribute('aria-pressed', x===b)); } });
 }
 document.getElementById('gfVoice').onclick=()=>{ state.voice = state.voice===false ? true : false; persist(); if(guided.active) drawGuided(); };
 
