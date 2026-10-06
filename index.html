@@ -195,7 +195,9 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .fb.compact .row{grid-template-columns:repeat(3,minmax(0,1fr));max-width:280px}
 .fb.compact button{padding:6px 4px;font-size:12.5px}
 .fb.compact .row{display:flex;gap:0;max-width:none;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
-.fb.compact .row button{flex:1;border:0;border-radius:0;border-right:1px solid var(--line);padding:11px 4px;min-height:42px;font-size:14px;white-space:nowrap;background:transparent;color:var(--ink)}
+.exfb{padding:0 0 12px}
+.exfb .fb{margin:0}
+.fb.compact .row button{flex:1 1 0;min-width:0;border:0;border-radius:0;border-right:1px solid var(--line);padding:11px 4px;min-height:42px;font-size:14px;white-space:nowrap;background:transparent;color:var(--ink)}
 .fb.compact .row button:last-child{border-right:0}
 .fb .row button[data-fb="easy"][aria-pressed="true"]{background:#1F9D55;color:#fff}
 .fb .row button[data-fb="ok"][aria-pressed="true"]{background:#2F6FE0;color:#fff}
@@ -558,7 +560,7 @@ function renderToday(){
     if(deload && day.kind==='sets') html += `<p class="pill warn">Lighter week: one set fewer per exercise</p>`;
     if(gymOn() && day.kind==='sets') html += `<p class="note">Gym: pick a load that leaves 2 reps in the tank on the last set. All reps completed two sessions in a row → +2.5 kg (upper body) or +5 kg (lower body). Log your load under each exercise.</p>`;
     if(guided.finished && guided.week===w && guided.day===dIdx){ html += renderRecap(day, ph, w); }
-    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''} ${checks[i]===false?'skipped':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':(checks[i]===false?'✕':'')}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${(!isDone(w,day.id) && (day.kind==='sets'||day.kind==='recovery'))?fbButtons(i,true,true):''}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>`; }).join('')+`</div>`;
+    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''} ${checks[i]===false?'skipped':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':(checks[i]===false?'✕':'')}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>${(!isDone(w,day.id) && (day.kind==='sets'||day.kind==='recovery'))?`<div class="exfb">${fbButtons(i,true,true)}</div>`:''}`; }).join('')+`</div>`;
   }
   if(day.kind==='amrap'){
     const mins = expressOn()?Math.min(day.minutes[ph],15):day.minutes[ph];
