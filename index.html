@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#B3261E">
 <meta name="apple-mobile-web-app-title" content="Strong Mom">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,300..900;1,62..125,300..900&display=swap">
 <style>
@@ -39,7 +40,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
 input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-height:44px;text-align:left}
-main{max-width:640px;margin:0 auto;padding:14px 16px 28px}
+main{max-width:640px;margin:0 auto;padding:30px 16px 28px}
+@media (display-mode: standalone){ main{padding-top:36px} }
 h1,h2,h3{margin:0;font-weight:800;line-height:1.05}
 .display{font-variation-settings:"wdth" 70;font-weight:900;letter-spacing:-.01em}
 .mark{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:4px 0 2px}
