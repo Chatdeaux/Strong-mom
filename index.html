@@ -37,7 +37,8 @@ main{min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-height:44px;text-align:left}
 main{max-width:640px;margin:0 auto;padding:14px 16px 28px}
 h1,h2,h3{margin:0;font-weight:800;line-height:1.05}
 .display{font-variation-settings:"wdth" 70;font-weight:900;letter-spacing:-.01em}
@@ -424,6 +425,8 @@ let curDay=null;
 function gymOn(){ const d=curDay; if(!d) return state.place==='gym'; const o=(state.placeByDay||{})[d.id]; if(o) return o==='gym'; return d.placeDefault==='gym'; }
 function bx(b){ return (gymOn() && b.g) ? b.g : b; }
 function placeChips(){ return `<div class="chips" style="padding-top:0"><button class="chip" aria-pressed="${!gymOn()}" data-place="home">Home · dumbbells & bands</button><button class="chip" aria-pressed="${gymOn()}" data-place="gym">Gym</button>${expressChip()}</div>`; }
+const NOLOAD = new Set(['rower','bike','hangingknee','planche','hollow','deadbug','finisherhome','mobilite','wallsit','stepdown','pont','mollets','burpee','birddog','pont1','abduction','kickback','suitcase','halo','pullapart','pullthrough','hundred','rollup','singleleg','bridgemarch','sidekick','swimming','sunsal','chair','warrior2','warrior3','crescent','bridgeyoga','boat','childs','pigeon','pompesg','pompes','pike','dips','row1']);
+function hasLoadField(b0,b){ return gymOn() && !!b0.g && !NOLOAD.has(b.k); }
 const LOWER = new Set(['backsquat','frontsquat','legpress','rdl','hipthrustbar','smithhipthrust','walkinglunge','bulgare','legcurl','stepupdb','hipthrustmachine','hipthrust1g','kbswing16']);
 function recoFor(k){ const r=(state.lastRpe||{})[k]; if(!r) return '';
   if(r.load==null){ if(r.rpe<=6) return `<div class="reco up">Too easy last time → add 2 reps per set (or 10 s on holds), or move to the harder variation.</div>`; if(r.rpe>=9) return `<div class="reco dn">Too hard last time → keep the same reps, or go back to the easier variation.</div>`; return ''; }
@@ -526,7 +529,7 @@ function renderToday(){
     if(deload && day.kind==='sets') html += `<p class="pill warn">Lighter week: one set fewer per exercise</p>`;
     if(gymOn() && day.kind==='sets') html += `<p class="note">Gym: pick a load that leaves 2 reps in the tank on the last set. All reps completed two sessions in a row → +2.5 kg (upper body) or +5 kg (lower body). Log your load under each exercise.</p>`;
     if(guided.finished && guided.week===w && guided.day===dIdx){ html += renderRecap(day, ph, w); }
-    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${(gymOn()&&b0.g)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>`; }).join('')+`</div>`;
+    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>`; }).join('')+`</div>`;
   }
   if(day.kind==='amrap'){
     const mins = expressOn()?Math.min(day.minutes[ph],15):day.minutes[ph];
@@ -545,7 +548,9 @@ function renderToday(){
   if(day.kind==='rest'){
     html += `<div class="card"><ul class="plain">${day.list.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
   }
-  if(day.kind!=='rest' && state.start && !isDone(w,day.id) && !(guided.active||guided.finished)){
+  const allChecked = (day.kind==='sets'||day.kind==='recovery') ? activeBlocks(day,ph,w).every(({i})=>checks[i]) : (day.kind==='amrap'||day.kind==='rounds') ? big.started : false;
+  if(day.kind!=='rest' && state.start && !isDone(w,day.id) && !(guided.active||guided.finished) && !allChecked){ html += `<p class="note" style="margin:14px 0">Start the guided session, or check each exercise by hand: the « Finish the session » card appears once everything is done.</p>`; }
+  if(day.kind!=='rest' && state.start && !isDone(w,day.id) && !(guided.active||guided.finished) && allChecked){
     html += `<div class="card"><h3>Finish the session</h3><div class="stack">
       <label class="field"><span>How hard did it feel? (1 easy – 10 all-out)</span><input type="range" min="1" max="10" value="7" id="rpe" style="padding:0"></label>
       <label class="field"><span>Note (load, how it felt, what got in the way…)</span><input type="text" id="snote" placeholder="e.g. hip thrusts felt easy, go heavier"></label>
@@ -567,7 +572,7 @@ function renderToday(){
     const rounds = big.rounds || 0; const durMin = guided.finished ? Math.max(1,Math.round((guided.endedAt-guided.startedAt)/60000)) : undefined;
     state.sessions.push({key:sessionKey(w,day.id), week:w, day:day.id, place:gymOn()?'gym':'home', date:iso(new Date()), rpe:+document.getElementById('rpe').value, note:document.getElementById('snote').value.trim(), dur:durMin, rounds:rounds||undefined, time: (day.kind==='rounds' && big.elapsed)? big.elapsed : (day.kind==='amrap' && big.started ? big.secs-big.remaining : undefined), score: sessionScore(day, ph, w, rounds, (day.kind==='rounds'&&big.elapsed)?big.elapsed:0)});
     const rpeV=+document.getElementById('rpe').value; state.lastRpe=state.lastRpe||{}; state.loadLog=state.loadLog||{}; const FBR={easy:5,ok:7,hard:9};
-    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false) return; const fb=(guided.fb||{})[i]; const r = fb?FBR[fb]:rpeV; const hasLoad=(gymOn()&&b0.g&&state.loads&&state.loads[b.k]!=null); state.lastRpe[b.k]={rpe:r, load:hasLoad?state.loads[b.k]:null, date:iso(new Date()), fb:fb||null}; if(hasLoad){ (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } }); }
+    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false) return; const fb=(guided.fb||{})[i]; const r = fb?FBR[fb]:rpeV; const hasLoad=(hasLoadField(b0,b)&&state.loads&&state.loads[b.k]!=null); state.lastRpe[b.k]={rpe:r, load:hasLoad?state.loads[b.k]:null, date:iso(new Date()), fb:fb||null}; if(hasLoad){ (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } }); }
     persist(); stopBig(); if(guided.finished) stopGuided(); toast('Session saved'); renderToday();
   };
   const ub=document.getElementById('undoBtn'); if(ub) ub.onclick=()=>{ state.sessions=state.sessions.filter(s=>s.key!==sessionKey(w,day.id)); persist(); renderToday(); };
@@ -671,7 +676,7 @@ function drawGuided(){
   let body='', actions='';
   if(st.t==='work'){
     const rx=rxShow(b,ph,w,day); const secs=timedSecs(rx);
-    body=`<div class="lbl">Set ${st.s} / ${st.n}</div><div class="count">${st.s}<span style="font-size:.45em;opacity:.5">/${st.n}</span></div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rx)}</div><div class="cue">${esc(b.cue)}</div>${(gymOn()&&b0.g)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}`;
+    body=`<div class="lbl">Set ${st.s} / ${st.n}</div><div class="count">${st.s}<span style="font-size:.45em;opacity:.5">/${st.n}</span></div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rx)}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}`;
     if(secs) body+=`<div class="timerbox"><div class="lbl">Hold</div><div class="count" id="gWork">${fmt(guided.work.running?guided.work.left:secs)}</div></div>`;
     actions = (secs?`<button class="btn" id="gTimerStart" data-secs="${secs}" ${guided.work.running?'disabled':''}>${guided.work.running?'Running…':'Start timer'}</button>`:'') +
       `<button class="btn ${secs?'ghost':''}" id="gNext">${guided.pos===guided.seq.length-1?'Finish':'Set done'}</button><div class="small-row"><button class="btn ghost" id="gPrev" ${guided.pos===0?'disabled':''}>Back</button><button class="btn ghost" id="gSkip">Skip</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
@@ -691,7 +696,7 @@ function renderRecap(day, ph, w){
   const mins=Math.max(1,Math.round((guided.endedAt-guided.startedAt)/60000));
   const k=sessionKey(w,day.id); const checks=state.checks[k]||[];
   const rows=activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); const n=setsFor(b,ph,w,day); const doneSets=guided.seq.filter((x,idx)=>x.t==='work'&&x.i===i&&guided.done.has(idx)).length; const on=checks[i]!==false && doneSets>0;
-    return `<div class="ex ${on?'on':''}"><button class="chk" data-rcheck="${i}" aria-label="${esc(b.n)}">${on?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${doneSets}/${n} sets${doneSets===0?' · skipped':''}</div>${(gymOn()&&b0.g)?loadField(b.k):''}${fbButtons(i)}</div><span></span></div>`; }).join('');
+    return `<div class="ex ${on?'on':''}"><button class="chk" data-rcheck="${i}" aria-label="${esc(b.n)}">${on?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${doneSets}/${n} sets${doneSets===0?' · skipped':''}</div>${hasLoadField(b0,b)?loadField(b.k):''}${fbButtons(i)}</div><span></span></div>`; }).join('');
   return `<div class="card recap"><div class="lbl meta">${esc(day.name)} · ${esc(day.title)}</div><h3 class="display" style="font-size:30px">Session complete</h3><div class="pills"><span class="pill">Duration ${mins} min</span><span class="pill">${guided.done.size} sets</span></div><p class="note">Fix anything if needed: uncheck an exercise you didn\'t do, adjust a load.</p>${rows}<hr>
     <div class="stack"><label class="field"><span>How hard did it feel? (1 easy – 10 all-out)</span><input type="range" min="1" max="10" value="7" id="rpe" style="padding:0"><span class="note" id="rpeVal">7/10</span></label><p class="note">Your answer drives the load recommendation for next session.</p>
     <label class="field"><span>Note</span><input type="text" id="snote" placeholder="…"></label>
@@ -905,7 +910,7 @@ function renderProgress(){
   };
   app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ state.tests.splice(+b.dataset.del,1); persist(); renderProgress(); });
   const eb=document.getElementById('exportBtn'); if(eb) eb.onclick=async()=>{ const txt=JSON.stringify(state); try{ await navigator.clipboard.writeText(txt); toast('Data copied to the clipboard'); }catch(e){ prompt('Copy my data', txt); } };
-  const ib=document.getElementById('importBtn'); if(ib) ib.onclick=()=>{ const txt=prompt('Paste here the data copied from the other version of the app:'); if(!txt) return; try{ const d=JSON.parse(txt); if(!d||typeof d!=='object'||!Array.isArray(d.sessions)) throw 0; const keys={}; (state.sessions||[]).forEach(s=>keys[s.key]=1); d.sessions.forEach(s=>{ if(!keys[s.key]) state.sessions.push(s); }); state.tests=[...(state.tests||[]),...(d.tests||[]).filter(t=>!(state.tests||[]).some(x=>x.week===t.week&&x.date===t.date))].sort((a,b)=>a.week-b.week); state.loads=Object.assign({},d.loads||{},state.loads||{}); state.loadLog=Object.assign({},d.loadLog||{},state.loadLog||{}); state.lastRpe=Object.assign({},d.lastRpe||{},state.lastRpe||{}); state.checks=Object.assign({},d.checks||{},state.checks||{}); if(!state.start&&d.start) state.start=d.start; if(d.cycle) state.cycle=Math.max(state.cycle||1,d.cycle); persist(); toast('Data imported'); render(); }catch(e){ toast('Unreadable data'); } };
+  const ib=document.getElementById('importBtn'); if(ib) ib.onclick=()=>{ const txt=prompt('Paste here the data copied from the other version of the app:'); if(!txt) return; try{ const d=JSON.parse(txt); if(!d||typeof d!=='object'||!Array.isArray(d.sessions)) throw 0; const keys={}; (state.sessions||[]).forEach(s=>keys[s.key]=1); d.sessions.forEach(s=>{ if(!keys[s.key]) state.sessions.push(s); }); state.tests=[...(state.tests||[]),...(d.tests||[]).filter(t=>!(state.tests||[]).some(x=>x.week===t.week&&x.date===t.date))].sort((a,b)=>a.week-b.week); state.loads=Object.assign({},d.loads||{},state.loads||{}); state.loadLog=Object.assign({},d.loadLog||{},state.loadLog||{}); state.lastRpe=Object.assign({},d.lastRpe||{},state.lastRpe||{}); state.checks=Object.assign({},d.checks||{},state.checks||{}); if(d.start && d.start!==state.start){ if(!state.start || confirm('The imported data has a different start date. Use '+d.start+' ?')) state.start=d.start; } if(d.cycle) state.cycle=Math.max(state.cycle||1,d.cycle); persist(); toast('Data imported'); render(); }catch(e){ toast('Unreadable data'); } };
   const si=document.getElementById('startIn'); if(si) si.onchange=e=>{ if(e.target.value){ state.start=iso(mondayOf(new Date(e.target.value+'T00:00:00'))); persist(); render(); } };
   document.getElementById('resetAll').onclick=()=>{ if(confirm('Erase all history and start over?')){ state={start:null, weight:state.weight, checks:{}, sessions:[], tests:[], amrapRounds:{}, images:state.images||{}, place:state.place, loads:state.loads||{}, cycle:1}; persist(); render(); } };
 }
