@@ -737,7 +737,13 @@ function startWorkTimer(secs){
 }
 function finishGuided(){ clearGuidedTimers(); guided.finished=true; guided.endedAt=Date.now(); beep(3); closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} } renderToday(); }
 function curFb(i){ if(guided.active||guided.finished) return guided.fb[i]||''; const k=sessionKey(view.week??currentWeek(), DAYS[view.day??todayIdx()].id); return ((state.fbs||{})[k]||{})[i]||''; }
-function setFb(i,v){ if(guided.active||guided.finished){ guided.fb[i]=v; return; } const k=sessionKey(view.week??currentWeek(), DAYS[view.day??todayIdx()].id); state.fbs=state.fbs||{}; state.fbs[k]=state.fbs[k]||{}; state.fbs[k][i]=v; const arr=state.checks[k]||[]; if(v==='skip'){ arr[i]=false; } else if(arr[i]===false){ arr[i]=true; } state.checks[k]=arr; persist(); renderToday(); }
+function setFb(i,v){
+  if(guided.active||guided.finished){ guided.fb[i] = (guided.fb[i]===v) ? '' : v; return; }
+  const k=sessionKey(view.week??currentWeek(), DAYS[view.day??todayIdx()].id); state.fbs=state.fbs||{}; state.fbs[k]=state.fbs[k]||{}; const arr=state.checks[k]||[];
+  if(state.fbs[k][i]===v){ delete state.fbs[k][i]; arr[i]=undefined; }
+  else { state.fbs[k][i]=v; if(v==='skip'){ arr[i]=false; } else { arr[i]=true; } }
+  state.checks[k]=arr; persist(); renderToday();
+}
 function fbButtons(i, compact, allowSkip){ const v=curFb(i); const lbl = compact ? '' : `<div class="lbl">How was that exercise?</div>`; return `<div class="fb ${compact?'compact':''}">${lbl}<div class="row"><button data-fb="easy" data-i="${i}" aria-pressed="${v==='easy'}">Easy</button><button data-fb="ok" data-i="${i}" aria-pressed="${v==='ok'}">Ok</button><button data-fb="hard" data-i="${i}" aria-pressed="${v==='hard'}">Hard</button>${allowSkip?`<button data-fb="skip" data-i="${i}" aria-pressed="${v==='skip'}" class="skipbtn">Skipped</button>`:''}</div>${compact?'':'<div class="note" style="margin-top:6px">Drives next time\'s recommended load.</div>'}</div>`; }
 function drawGuided(){
   if(!guided.active) return;
@@ -792,7 +798,7 @@ function bindGuided(root){ root=root||document;
   const r=document.getElementById('rpe'); if(r){ r.oninput=()=>{ const v=document.getElementById('rpeVal'); if(v) v.textContent=r.value+'/10'; }; }
   root.querySelectorAll('[data-rcheck]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.rcheck; const day=DAYS[guided.day]; const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[i]=!(arr[i]!==false && b.textContent==='✓'); state.checks[k]=arr; persist(); if(!arr[i]){ guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.delete(idx); }); } else { guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.add(idx); }); } renderToday(); });
   const d=document.getElementById('discardBtn'); if(d) d.onclick=()=>{ if(confirm('Discard this session? Nothing will be saved.')){ stopGuided(); renderToday(); } };
-  root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=()=>{ const inG=(guided.active||guided.finished); setFb(+b.dataset.i, b.dataset.fb); if(inG){ root.querySelectorAll('[data-fb][data-i="'+b.dataset.i+'"]').forEach(x=>x.setAttribute('aria-pressed', x===b)); } });
+  root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=()=>{ const inG=(guided.active||guided.finished); setFb(+b.dataset.i, b.dataset.fb); if(inG){ const cur=guided.fb[+b.dataset.i]||''; root.querySelectorAll('[data-fb][data-i="'+b.dataset.i+'"]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.fb===cur)); } });
 }
 document.getElementById('gfVoice').onclick=()=>{ state.voice = state.voice===false ? true : false; persist(); if(guided.active) drawGuided(); };
 
