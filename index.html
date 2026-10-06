@@ -41,7 +41,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
 input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-height:44px;text-align:left}
 main{max-width:640px;margin:0 auto;padding:30px 16px 28px}
-@media (display-mode: standalone){ main{padding-top:36px} }
+@media (display-mode: standalone){ main{padding-top:40px} .gf{padding-top:calc(28px + env(safe-area-inset-top,0px))} .focus{padding-top:calc(40px + env(safe-area-inset-top,0px))} }
 h1,h2,h3{margin:0;font-weight:800;line-height:1.05}
 .display{font-variation-settings:"wdth" 70;font-weight:900;letter-spacing:-.01em}
 .mark{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:4px 0 2px}
@@ -156,7 +156,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 .progressline i{display:block;height:100%;background:var(--accent);transition:width .3s}
 .guided,.guided *,.card,.ex>div{min-width:0;max-width:100%}
 .guided .exname,.guided .cue,.guided .rx,.ex .name,.ex .cue{overflow-wrap:anywhere;white-space:normal}
-.gf{position:fixed;inset:0;z-index:14;background:var(--bg);color:var(--ink);display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.gf{position:fixed;inset:0;z-index:14;background:var(--bg);color:var(--ink);display:none;flex-direction:column;padding-top:calc(22px + env(safe-area-inset-top,0px))}
 .gf.show{display:flex}
 .gf-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 8px;font-size:13px;color:var(--ink-2);font-weight:600}
 .gf-top #gfElapsed{font-variant-numeric:tabular-nums}
@@ -243,7 +243,7 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .itemrow{display:flex;gap:10px;align-items:flex-start}
 .itemrow .mini{width:72px;height:56px;object-fit:contain;background:var(--bg);border-radius:8px;border:1px solid var(--line);flex:0 0 auto;cursor:zoom-in}
 .itemrow .cue{font-size:13px;color:var(--ink-2)}
-.focus{position:fixed;inset:0;background:var(--bg);color:var(--ink);z-index:15;display:none;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto}
+.focus{position:fixed;inset:0;background:var(--bg);color:var(--ink);z-index:15;display:none;flex-direction:column;padding:calc(34px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto}
 .focus.show{display:flex}
 .focus .ftimer{font-variation-settings:"wdth" 70;font-weight:900;font-size:min(96px,22vw);line-height:1;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0}
 .focus .ftimer.paused{opacity:.5}
