@@ -16,11 +16,9 @@ Tip: square, 600 to 800 px, under 150 KB each.
 | `row2` | Two-hand bent-over row |
 | `press2` | Two-hand KB press |
 | `row1` | One-arm row (gorilla row) |
-| `halo` | Kettlebell halo |
 | `deadbug` | Dead bug |
 | `birddog` | Bird dog |
 | `rdlkb` | KB Romanian deadlift |
-| `swing2` | Two-hand swing |
 | `pontsur` | Feet-elevated glute bridge |
 | `stepup` | Step-up on a stair |
 | `kickback` | Quadruped glute kickback |
@@ -39,7 +37,6 @@ Tip: square, 600 to 800 px, under 150 KB each.
 | `dbohp` | Dumbbell shoulder press |
 | `latpull` | Lat pulldown |
 | `rdl` | Barbell Romanian deadlift |
-| `kbswing16` | 16 kg KB swing |
 | `goodmorning` | 45° back extension |
 | `stepupdb` | Dumbbell step-up on a bench |
 | `cablekick` | Cable kickback |
@@ -47,3 +44,19 @@ Tip: square, 600 to 800 px, under 150 KB each.
 | `rower` | Rowing machine |
 | `bulgare` | Dumbbell Bulgarian split squat |
 | `legcurl` | Lying leg curl |
+| `pullthrough` | Band pull-through |
+| `cablepull` | Cable pull-through |
+| `pullapart` | Band pull-apart |
+| `hundred` | The hundred |
+| `rollup` | Roll-up |
+| `singleleg` | Single-leg stretch |
+| `bridgemarch` | Bridge with marching |
+| `sidekick` | Side-lying leg kicks |
+| `swimming` | Swimming |
+| `sunsal` | Sun salutations |
+| `chair` | Chair pose |
+| `warrior2` | Warrior II |
+| `warrior3` | Warrior III |
+| `crescent` | Crescent lunge |
+| `bridgeyoga` | Bridge pose |
+| `boat` | Boat pose |
