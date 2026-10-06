@@ -172,13 +172,26 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .gf .cue{font-size:15px;color:var(--ink-2);margin:8px auto 0;max-width:38ch;line-height:1.45}
 .gf .gvid{margin:14px auto 0}
 .gf .thumb{display:block;max-width:220px;margin:14px auto 0;border-radius:12px;border:1px solid var(--line);cursor:zoom-in}
-.gf .how{max-width:38ch;margin:12px auto 0}
+.gf .how{max-width:38ch;margin:12px auto 0;text-align:center}
+.gf .how ol{text-align:left}
+.gf .count.off{color:var(--ok)}
 .gf .loadf{margin-top:12px}
 .gf .reco{max-width:38ch;margin:6px auto 0}
-.gf .nextcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:14px 0 0;text-align:left}
+.gf .donecard{background:transparent;border:1px dashed var(--line);border-radius:16px;padding:12px 16px;margin:18px 0 0;text-align:left;opacity:.9}
+.gf .donecard .exname{font-size:20px;margin:2px 0 0}
+.gf .donecard .fb{margin-top:8px}
+.gf .nextcard{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:16px;padding:14px 16px;margin:14px 0 0;text-align:left}
+.gf .lbl.accent{color:var(--accent)}
+.gf .lbl.ok{color:var(--ok)}
+.gf .lbl.big{font-size:15px;letter-spacing:.04em;margin-bottom:4px}
+.gf .donecard{border:1px solid var(--line);border-left:4px solid var(--ok);border-style:solid;background:var(--surface);opacity:1}
+.gf .donecard .exname{font-size:22px}
 .gf .nextcard .exname{font-size:24px;margin:4px 0 2px}
 .gf .nextcard .cue{margin:6px 0 0;max-width:none}
 .fb{margin:10px 0 0}
+.fb.compact{margin:8px 0 0}
+.fb.compact .row{grid-template-columns:repeat(3,minmax(0,1fr));max-width:280px}
+.fb.compact button{padding:6px 4px;font-size:12.5px}
 .fb .row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
 .fb button{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 4px;font-weight:700;font-size:13px}
 .fb button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
@@ -437,7 +450,7 @@ function loadField(k){ state.loads=state.loads||{}; const v=state.loads[k]; retu
 function bindPlace(root){
   root.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>{ state.placeByDay=state.placeByDay||{}; if(curDay) state.placeByDay[curDay.id]=b.dataset.place; state.place=b.dataset.place; persist(); if(guided.active) stopGuided(); rerender(); });
   root.querySelectorAll('[data-express]').forEach(b=>b.onclick=()=>{ state.express=!state.express; persist(); if(guided.active) stopGuided(); stopBig(); rerender(); });
-  root.querySelectorAll('[data-load]').forEach(i=>i.onchange=e=>{ state.loads=state.loads||{}; const v=parseFloat(e.target.value); if(isNaN(v)) delete state.loads[i.dataset.load]; else state.loads[i.dataset.load]=v; persist(); });
+  root.querySelectorAll('[data-load]').forEach(i=>i.oninput=i.onchange=e=>{ state.loads=state.loads||{}; const v=parseFloat(e.target.value); if(isNaN(v)) delete state.loads[i.dataset.load]; else state.loads[i.dataset.load]=v; persist(); });
 }
 
 /* ===================== Durée & mode express ===================== */
@@ -529,7 +542,7 @@ function renderToday(){
     if(deload && day.kind==='sets') html += `<p class="pill warn">Lighter week: one set fewer per exercise</p>`;
     if(gymOn() && day.kind==='sets') html += `<p class="note">Gym: pick a load that leaves 2 reps in the tank on the last set. All reps completed two sessions in a row → +2.5 kg (upper body) or +5 kg (lower body). Log your load under each exercise.</p>`;
     if(guided.finished && guided.week===w && guided.day===dIdx){ html += renderRecap(day, ph, w); }
-    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>`; }).join('')+`</div>`;
+    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${(!isDone(w,day.id) && (day.kind==='sets'||day.kind==='recovery'))?fbButtons(i,true):''}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>`; }).join('')+`</div>`;
   }
   if(day.kind==='amrap'){
     const mins = expressOn()?Math.min(day.minutes[ph],15):day.minutes[ph];
@@ -551,14 +564,14 @@ function renderToday(){
   const allChecked = (day.kind==='sets'||day.kind==='recovery') ? activeBlocks(day,ph,w).every(({i})=>checks[i]) : (day.kind==='amrap'||day.kind==='rounds') ? big.started : false;
   if(day.kind!=='rest' && state.start && !isDone(w,day.id) && !(guided.active||guided.finished) && !allChecked){ html += `<p class="note" style="margin:14px 0">Start the guided session, or check each exercise by hand: the « Finish the session » card appears once everything is done.</p>`; }
   if(day.kind!=='rest' && state.start && !isDone(w,day.id) && !(guided.active||guided.finished) && allChecked){
-    html += `<div class="card"><h3>Finish the session</h3><div class="stack">
-      <label class="field"><span>How hard did it feel? (1 easy – 10 all-out)</span><input type="range" min="1" max="10" value="7" id="rpe" style="padding:0"></label>
-      <label class="field"><span>Note (load, how it felt, what got in the way…)</span><input type="text" id="snote" placeholder="e.g. hip thrusts felt easy, go heavier"></label>
+    html += `<div class="card"><h3>Finish the session</h3><p class="note">Easy / Ok / Hard under each exercise drives next time's load. With no answer, the exercise counts as « Ok ».</p><div class="stack">
+      <label class="field"><span>Note (optional)</span><input type="text" id="snote" placeholder="e.g. hip thrusts felt easy, go heavier"></label>
+      <input type="hidden" id="rpe" value="7"><label class="field"><span>Average BPM (watch, optional)</span><input type="number" id="sbpm" inputmode="numeric" placeholder="ex. 135"></label>
       <button class="btn" id="finishBtn">Save the session</button></div></div>`;
   }
   if(day.kind!=='rest' && isDone(w,day.id)){
     const s = state.sessions.find(s=>s.key===sessionKey(w,day.id));
-    html += `<div class="card"><h3>Session saved</h3><p class="note">${esc(s.date)} · effort ${s.rpe}/10${s.rounds?` · ${s.rounds} rounds`:''}${s.note?` · ${esc(s.note)}`:''}</p><button class="btn ghost small" id="undoBtn">Undo</button></div>`;
+    html += savedCard(s, day);
   }
   app.innerHTML = html;
 
@@ -570,11 +583,13 @@ function renderToday(){
   app.querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>startRest(+b.dataset.rest));
   const fb=document.getElementById('finishBtn'); if(fb) fb.onclick=()=>{
     const rounds = big.rounds || 0; const durMin = guided.finished ? Math.max(1,Math.round((guided.endedAt-guided.startedAt)/60000)) : undefined;
-    state.sessions.push({key:sessionKey(w,day.id), week:w, day:day.id, place:gymOn()?'gym':'home', date:iso(new Date()), rpe:+document.getElementById('rpe').value, note:document.getElementById('snote').value.trim(), dur:durMin, rounds:rounds||undefined, time: (day.kind==='rounds' && big.elapsed)? big.elapsed : (day.kind==='amrap' && big.started ? big.secs-big.remaining : undefined), score: sessionScore(day, ph, w, rounds, (day.kind==='rounds'&&big.elapsed)?big.elapsed:0)});
-    const rpeV=+document.getElementById('rpe').value; state.lastRpe=state.lastRpe||{}; state.loadLog=state.loadLog||{}; const FBR={easy:5,ok:7,hard:9};
-    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false) return; const fb=(guided.fb||{})[i]; const r = fb?FBR[fb]:rpeV; const hasLoad=(hasLoadField(b0,b)&&state.loads&&state.loads[b.k]!=null); state.lastRpe[b.k]={rpe:r, load:hasLoad?state.loads[b.k]:null, date:iso(new Date()), fb:fb||null}; if(hasLoad){ (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } }); }
+    state.sessions.push({key:sessionKey(w,day.id), week:w, day:day.id, place:gymOn()?'gym':'home', date:iso(new Date()), rpe:+document.getElementById('rpe').value, note:document.getElementById('snote').value.trim(), bpm:(parseInt((document.getElementById('sbpm')||{}).value)||undefined), dur:durMin, rounds:rounds||undefined, time: (day.kind==='rounds' && big.elapsed)? big.elapsed : (day.kind==='amrap' && big.started ? big.secs-big.remaining : undefined), score: sessionScore(day, ph, w, rounds, (day.kind==='rounds'&&big.elapsed)?big.elapsed:0)});
+    const rpeV=+document.getElementById('rpe').value; state.lastRpe=state.lastRpe||{}; state.loadLog=state.loadLog||{}; const FBR={easy:5,ok:7,hard:9}; const exList=[];
+    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false) return; const fb=(guided.active||guided.finished)?(guided.fb||{})[i]:(((state.fbs||{})[sessionKey(w,day.id)]||{})[i]); const r = fb?FBR[fb]:7; const hasLoad=(hasLoadField(b0,b)&&state.loads&&state.loads[b.k]!=null); state.lastRpe[b.k]={rpe:r, load:hasLoad?state.loads[b.k]:null, date:iso(new Date()), fb:fb||null}; if(hasLoad){ (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } const sets=guided.finished? guided.seq.filter((x,idx)=>x.t==='work'&&x.i===i&&guided.done.has(idx)).length : setsFor(b,ph,w,day); exList.push({k:b.k, n:b.n, sets, load:hasLoad?state.loads[b.k]:null, fb:fb||null, next:nextReco(b.k)}); }); }
+    const sess=state.sessions[state.sessions.length-1]; sess.ex=exList; const fbsAll=exList.filter(e=>e.fb); if(fbsAll.length) sess.rpe=Math.round(fbsAll.reduce((t,e)=>t+FBR[e.fb],0)/fbsAll.length);
     persist(); stopBig(); if(guided.finished) stopGuided(); toast('Session saved'); renderToday();
   };
+  const shb=document.getElementById('shareBtn'); if(shb) shb.onclick=()=>{ const s=state.sessions.find(s=>s.key===sessionKey(w,day.id)); if(s) shareSession(s, day); };
   const ub=document.getElementById('undoBtn'); if(ub) ub.onclick=()=>{ state.sessions=state.sessions.filter(s=>s.key!==sessionKey(w,day.id)); persist(); renderToday(); };
   big.day=day; big.ph=ph; bindBig(); bindImages(app); bindGuided(); bindPlace(app);
   const gb=document.getElementById('goBtn'); if(gb) gb.onclick=()=>showPrep(day, ph, w, ()=>startGuided(day, ph, w, dIdx));
@@ -594,6 +609,37 @@ function scoreArrow(wk, id){
   if(cur.score>prev.score) return '<span class="up">▲</span>'; if(cur.score<prev.score) return '<span class="dn">▼</span>'; return '<span class="eq">=</span>';
 }
 
+/* ===================== Carte séance enregistrée + partage ===================== */
+const FBL={easy:'Easy',ok:'Ok',hard:'Hard'};
+function savedCard(s, day){
+  const ex=s.ex||[]; const fbs=ex.filter(e=>e.fb); const score=fbs.length? (fbs.reduce((t,e)=>t+({easy:1,ok:2,hard:3}[e.fb]),0)/fbs.length) : null;
+  const mood = score==null?'':(score<1.5?'overall easy → going up':score>2.5?'overall hard → consolidating':'well calibrated');
+  const rows = ex.map(e=>{ const nxt = e.next ? `<span class="reco ${e.next.cls}">→ ${esc(e.next.txt)}</span>` : ''; return `<tr><td>${esc(e.n)}</td><td>${e.sets!=null?e.sets+'×':''}${e.load!=null?' '+e.load+' kg':''}</td><td>${e.fb?FBL[e.fb]:'–'}</td><td>${nxt}</td></tr>`; }).join('');
+  return `<div class="card recap" id="savedCard"><div class="lbl meta">${esc(day.name)} · ${esc(s.date)}</div><h3 class="display" style="font-size:28px">Session saved</h3><div class="pills">${s.dur?`<span class="pill">${s.dur} min</span>`:''}${s.rounds?`<span class="pill">${s.rounds} rounds</span>`:''}${s.time?`<span class="pill">${fmt(s.time)}</span>`:''}${s.bpm?`<span class="pill">${s.bpm} bpm</span>`:''}${mood?`<span class="pill">${mood}</span>`:''}</div>
+  ${ex.length?`<div class="tablewrap" style="margin-top:10px"><table><tr><th>Exercise</th><th>Done</th><th>Feel</th><th>Next time</th></tr>${rows}</table></div><p class="note" style="margin-top:8px">✓ Saved: these recommendations will show automatically at the next session.</p>`:''}
+  ${s.note?`<p class="note">${esc(s.note)}</p>`:''}
+  <div class="row" style="margin-top:10px"><button class="btn small" id="shareBtn">Share the recap</button><button class="btn ghost small" id="undoBtn">Undo</button></div></div>`;
+}
+function nextReco(k){ const r=(state.lastRpe||{})[k]; if(!r) return null; if(r.load==null){ if(r.rpe<=6) return {cls:'up', txt:'+2 reps / +10 s'}; if(r.rpe>=9) return {cls:'dn', txt:'keep or ease off'}; return {cls:'eq', txt:'same'}; } const step=LOWER.has(k)?5:2.5; if(r.rpe<=6) return {cls:'up', txt:(r.load+step)+' kg'}; if(r.rpe>=9) return {cls:'dn', txt:Math.max(0,r.load-step)+' kg'}; return {cls:'eq', txt:r.load+' kg'}; }
+async function shareSession(s, day){
+  const W=1080, H=1350; const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  const cs=getComputedStyle(document.documentElement); const accent=cs.getPropertyValue('--accent').trim()||'#333';
+  const g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,accent); g.addColorStop(1,'#111'); x.fillStyle=g; x.fillRect(0,0,W,H);
+  x.fillStyle='rgba(255,255,255,.08)'; x.fillRect(60,60,W-120,H-120);
+  x.fillStyle='#fff'; x.textBaseline='top';
+  x.font='700 34px Archivo, system-ui, sans-serif'; x.fillText('Strong Mom', 100, 100);
+  x.font='400 30px Archivo, system-ui, sans-serif'; x.fillStyle='rgba(255,255,255,.75)'; x.fillText(day.name+' · '+s.date, 100, 150);
+  x.fillStyle='#fff'; x.font='900 76px Archivo, system-ui, sans-serif'; const title=day.title.replace(' · bonus',''); x.fillText(title.length>22?title.slice(0,22)+'…':title, 100, 210);
+  const pills=[s.dur?s.dur+' min':null, s.rounds?s.rounds+' rounds':null, s.time?fmt(s.time):null, s.run&&s.run.km?s.run.km+' km':null, s.run&&s.run.bpm?s.run.bpm+' bpm':null, s.bpm?s.bpm+' bpm':null].filter(Boolean);
+  x.font='700 34px Archivo, system-ui, sans-serif'; let px=100; pills.forEach(p=>{ const tw=x.measureText(p).width+48; x.fillStyle='rgba(255,255,255,.18)'; x.beginPath(); x.roundRect(px,320,tw,62,16); x.fill(); x.fillStyle='#fff'; x.fillText(p, px+24, 334); px+=tw+16; });
+  let y=430; const ex=s.ex||[]; x.font='400 32px Archivo, system-ui, sans-serif';
+  ex.slice(0,14).forEach(e=>{ x.fillStyle='#fff'; x.font='700 32px Archivo, system-ui, sans-serif'; const n=e.n.length>30?e.n.slice(0,30)+'…':e.n; x.fillText(n, 100, y); x.font='400 30px Archivo, system-ui, sans-serif'; x.fillStyle='rgba(255,255,255,.8)'; const r=[e.sets!=null?e.sets+' sets':null, e.load!=null?e.load+' kg':null, e.fb?FBL[e.fb]:null].filter(Boolean).join(' · '); x.textAlign='right'; x.fillText(r, W-100, y+2); x.textAlign='left'; y+=58; });
+  x.fillStyle='rgba(255,255,255,.6)'; x.font='400 28px Archivo, system-ui, sans-serif'; x.fillText('Strong Mom · personal program', 100, H-130);
+  const blob=await new Promise(r=>c.toBlob(r,'image/png')); const file=new File([blob],'session.png',{type:'image/png'});
+  try{ if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:'Strong Mom'}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  const url=URL.createObjectURL(blob); const img=document.getElementById('ovImg'); img.style.display='block'; img.src=url; document.getElementById('ovVid').style.display='none'; document.getElementById('ovCap').textContent='Press and hold the image to save or share it'; document.getElementById('ovDel').style.display='none'; document.getElementById('overlay').classList.add('show');
+}
+
 /* ===================== Objectif avant séance ===================== */
 let prepCb=null;
 function showPrep(day, ph, w, cb){
@@ -607,7 +653,7 @@ document.getElementById('prepGo').onclick=()=>{ document.getElementById('prep').
 document.getElementById('prepCancel').onclick=()=>{ document.getElementById('prep').classList.remove('show'); prepCb=null; };
 
 /* ===================== Mode guidé ===================== */
-let guided = {active:false, finished:false, week:null, day:null, seq:[], pos:0, restLeft:0, int:null, wake:null, done:new Set(), startedAt:0, endedAt:0, work:{left:0,int:null,running:false}};
+let guided = {iv:{running:false,phase:'',left:0,round:0,rounds:0,int:null}, active:false, finished:false, week:null, day:null, seq:[], pos:0, restLeft:0, int:null, wake:null, done:new Set(), startedAt:0, endedAt:0, work:{left:0,int:null,running:false}};
 function setsOf(rx){ const m=/^(\d+)\s*×/.exec(rx); return m?+m[1]:1; }
 function timedSecs(rx){ let m=/×\s*(\d+)\s*(min|s)\b/.exec(rx); if(!m) m=/^(\d+)\s*(min)\b/.exec(rx); if(!m) return 0; return m[2]==='min'? +m[1]*60 : +m[1]; }
 function buildSeq(day, ph, w){
@@ -616,12 +662,12 @@ function buildSeq(day, ph, w){
   seq.pop(); return seq;
 }
 function startGuided(day, ph, w, dIdx){
-  guided={active:true, finished:false, week:w, day:dIdx, seq:buildSeq(day,ph,w), pos:0, restLeft:0, int:null, wake:null, done:new Set(), startedAt:Date.now(), endedAt:0, work:{left:0,int:null,running:false}, fb:{}, elapsedInt:null};
+  guided={iv:{running:false,phase:'',left:0,round:0,rounds:0,int:null}, active:true, finished:false, week:w, day:dIdx, seq:buildSeq(day,ph,w), pos:0, restLeft:0, int:null, wake:null, done:new Set(), startedAt:Date.now(), endedAt:0, work:{left:0,int:null,running:false}, fb:{}, elapsedInt:null};
   try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(l=>guided.wake=l).catch(()=>{}); }catch(e){}
   guided.elapsedInt=setInterval(()=>{ const el=document.getElementById('gfElapsed'); if(el) el.textContent=fmt((Date.now()-guided.startedAt)/1000); },1000);
   guided.scrollY=window.scrollY; document.body.classList.add('locked'); document.body.style.top=(-guided.scrollY)+'px'; document.getElementById('gf').classList.add('show'); drawGuided(); say('Go');
 }
-function clearGuidedTimers(){ clearInterval(guided.int); clearInterval(guided.work.int); guided.work.running=false; }
+function clearGuidedTimers(){ clearInterval(guided.int); clearInterval(guided.work.int); guided.work.running=false; if(guided.iv){ clearInterval(guided.iv.int); guided.iv.running=false; guided.iv.phase=''; } }
 function closeGf(){ document.getElementById('gf').classList.remove('show'); document.body.classList.remove('locked'); document.body.style.top=''; try{ window.scrollTo(0,guided.scrollY||0); }catch(e){} clearInterval(guided.elapsedInt); try{ speechSynthesis.cancel(); }catch(e){} }
 function stopGuided(){ clearGuidedTimers(); closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} } guided.active=false; guided.finished=false; }
 function markCheck(i,val){ const day=DAYS[guided.day]; const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[i]=val; state.checks[k]=arr; persist(); }
@@ -656,13 +702,27 @@ function guidedPrev(){
   markCheck(prevI,false); drawGuided();
 }
 function guidedSkipExercise(){ clearGuidedTimers(); const cur=guided.seq[guided.pos]; let p=guided.pos; while(p<guided.seq.length && guided.seq[p].i===cur.i) p++; guided.pos=p; if(guided.pos>=guided.seq.length){ finishGuided(); return; } const st=guided.seq[guided.pos]; if(st.t==='rest'){ guided.pos++; } if(guided.pos>=guided.seq.length){ finishGuided(); return; } drawGuided(); }
+function repPart(rx){ const m=/×\s*(.*)$/.exec(rx); const s=(m?m[1]:rx).trim(); const n=/^(\d+(?:[.,]\d+)?)\s*(par bras|par jambe|par côté|per arm|per leg|per side|each way|steps each way|s\b|min\b|m\b|tours|rounds)?/.exec(s); if(!n) return {num:s, unit:''}; return {num:n[1], unit:(n[2]||'')}; }
+function startIntervals(on, off, rounds){
+  clearInterval(guided.iv.int); guided.iv={running:true, phase:'pre', left:3, round:1, rounds, on, off, int:null};
+  say('3'); drawIvTick();
+  guided.iv.int=setInterval(()=>{ const v=guided.iv; v.left--;
+    if(v.phase==='pre'){ if(v.left>0){ say(String(v.left)); } else { v.phase='on'; v.left=on; say('Go'); beep(1); } }
+    else if(v.phase==='on'){ if(v.left>0 && v.left<=3) countdownCue(v.left); if(v.left<=0){ v.phase='off'; v.left=off; beep(2); say('Easy'); } }
+    else if(v.phase==='off'){ if(v.left>0 && v.left<=3) countdownCue(v.left); if(v.left<=0){ v.round++; if(v.round>v.rounds){ clearInterval(v.int); v.running=false; beep(3); say('Done'); guidedNext(); return; } v.phase='on'; v.left=on; beep(1); say('Go'); } }
+    drawIvTick(); },1000);
+  const b=document.getElementById('gIvStart'); if(b){ b.disabled=true; b.textContent='Running…'; }
+}
+function drawIvTick(){ const v=guided.iv; const el=document.getElementById('gWork'); if(el){ el.textContent=fmt(v.left); el.classList.toggle('off', v.phase==='off'); } const p=document.getElementById('ivPhase'); if(p) p.textContent = v.phase==='pre'?'READY':(v.phase==='on'?'HARD':'EASY'); const r=document.getElementById('ivRound'); if(r) r.textContent='Round '+Math.min(v.round,v.rounds)+'/'+v.rounds; }
 function startWorkTimer(secs){
   clearInterval(guided.work.int); guided.work.left=secs; guided.work.running=true; say('Go');
   guided.work.int=setInterval(()=>{ guided.work.left--; const el=document.getElementById('gWork'); if(el) el.textContent=fmt(guided.work.left); countdownCue(guided.work.left); if(guided.work.left<=0){ clearInterval(guided.work.int); guided.work.running=false; beep(2); guidedNext(); } },1000);
   const btn=document.getElementById('gTimerStart'); if(btn){ btn.textContent='Running…'; btn.disabled=true; }
 }
 function finishGuided(){ clearGuidedTimers(); guided.finished=true; guided.endedAt=Date.now(); beep(3); closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} } renderToday(); }
-function fbButtons(i){ const v=guided.fb[i]||''; return `<div class="fb"><div class="lbl">How was that exercise?</div><div class="row"><button data-fb="easy" data-i="${i}" aria-pressed="${v==='easy'}">Too easy</button><button data-fb="ok" data-i="${i}" aria-pressed="${v==='ok'}">Right</button><button data-fb="hard" data-i="${i}" aria-pressed="${v==='hard'}">Too hard</button></div><div class="note" style="margin-top:6px">Drives next time\'s recommended load.</div></div>`; }
+function curFb(i){ if(guided.active||guided.finished) return guided.fb[i]||''; const k=sessionKey(view.week??currentWeek(), DAYS[view.day??todayIdx()].id); return ((state.fbs||{})[k]||{})[i]||''; }
+function setFb(i,v){ if(guided.active||guided.finished){ guided.fb[i]=v; return; } const k=sessionKey(view.week??currentWeek(), DAYS[view.day??todayIdx()].id); state.fbs=state.fbs||{}; state.fbs[k]=state.fbs[k]||{}; state.fbs[k][i]=v; persist(); }
+function fbButtons(i, compact){ const v=curFb(i); const lbl = compact ? '' : `<div class="lbl">How was that exercise?</div>`; return `<div class="fb ${compact?'compact':''}">${lbl}<div class="row"><button data-fb="easy" data-i="${i}" aria-pressed="${v==='easy'}">Easy</button><button data-fb="ok" data-i="${i}" aria-pressed="${v==='ok'}">Ok</button><button data-fb="hard" data-i="${i}" aria-pressed="${v==='hard'}">Hard</button></div>${compact?'':'<div class="note" style="margin-top:6px">Drives next time\'s recommended load.</div>'}</div>`; }
 function drawGuided(){
   if(!guided.active) return;
   const day=DAYS[guided.day]; const w=guided.week; const ph=phaseOf(w); curDay=day;
@@ -675,17 +735,20 @@ function drawGuided(){
   const gf=document.getElementById('gf'); gf.classList.toggle('rest', st.t==='rest');
   let body='', actions='';
   if(st.t==='work'){
-    const rx=rxShow(b,ph,w,day); const secs=timedSecs(rx);
-    body=`<div class="lbl">Set ${st.s} / ${st.n}</div><div class="count">${st.s}<span style="font-size:.45em;opacity:.5">/${st.n}</span></div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rx)}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}`;
-    if(secs) body+=`<div class="timerbox"><div class="lbl">Hold</div><div class="count" id="gWork">${fmt(guided.work.running?guided.work.left:secs)}</div></div>`;
-    actions = (secs?`<button class="btn" id="gTimerStart" data-secs="${secs}" ${guided.work.running?'disabled':''}>${guided.work.running?'Running…':'Start timer'}</button>`:'') +
-      `<button class="btn ${secs?'ghost':''}" id="gNext">${guided.pos===guided.seq.length-1?'Finish':'Set done'}</button><div class="small-row"><button class="btn ghost" id="gPrev" ${guided.pos===0?'disabled':''}>Back</button><button class="btn ghost" id="gSkip">Skip</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
+    const rx=rxShow(b,ph,w,day); const secs=timedSecs(rx); const iv=b.iv||null;
+    const rp=repPart(rx); const doneSets=guided.seq.filter((x,idx)=>x.t==='work'&&x.i===st.i&&guided.done.has(idx)).length; const repsN=repsOf(rx);
+    const ivRounds = iv ? (iv.rounds || parseInt(rx) || 6) : 0; const key = iv ? `${ivRounds} × ${iv.on}/${iv.off} s` : (secs ? fmt(secs) : rp.num);
+    body=`<div class="lbl">Set ${st.s} of ${st.n}</div><div class="count">${esc(key)}</div><div class="lbl" style="margin-top:-4px">${esc(iv?'intervals':(secs?'hold':rp.unit||'reps'))}</div><div class="exname">${esc(b.n)}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}`;
+    if(iv){ body+=`<div class="timerbox"><div class="lbl" id="ivPhase">${guided.iv.running?(guided.iv.phase==='on'?'HARD':'EASY'):'intervals'}</div><div class="count ${guided.iv.phase==='off'?'off':''}" id="gWork">${fmt(guided.iv.running?guided.iv.left:iv.on)}</div><div class="lbl" id="ivRound">${guided.iv.running?'Round '+guided.iv.round+'/'+guided.iv.rounds:''}</div></div>`; }
+    else if(secs) body+=`<div class="timerbox"><div class="count" id="gWork">${fmt(guided.work.running?guided.work.left:secs)}</div></div>`;
+    actions = (iv?`<button class="btn" id="gIvStart" data-on="${iv.on}" data-off="${iv.off}" data-rounds="${ivRounds}" ${guided.iv.running?'disabled':''}>${guided.iv.running?'Running…':'Go · intervals'}</button>`:(secs?`<button class="btn" id="gTimerStart" data-secs="${secs}" ${guided.work.running?'disabled':''}>${guided.work.running?'Running…':'Start timer'}</button>`:'')) +
+      `<button class="btn ${(secs||iv)?'ghost':''}" id="gNext">${guided.pos===guided.seq.length-1?'Finish':'Set done'}</button><div class="small-row"><button class="btn ghost" id="gPrev" ${guided.pos===0?'disabled':''}>Back</button><button class="btn ghost" id="gSkip">Skip</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
   } else {
     const nxt=guided.seq.slice(guided.pos+1).find(x=>x.t==='work' && x.i!==st.i); const nb0=nxt?day.blocks[nxt.i]:null; const nb=nb0?bx(nb0):null; const last=(st.s===st.n);
     body=`<div class="lbl">Rest</div><div class="count" id="gCount">${fmt(guided.restLeft)}</div>`;
-    if(last){ body+=fbButtons(st.i); }
-    if(last && nb){ body+=`<div class="nextcard"><div class="lbl">Next exercise</div><div class="exname">${esc(nb.n)}</div><div class="rx">${esc(rxShow(nb,ph,w,day))}</div><div class="cue">${esc(nb.cue)}</div>${nb.k?recoFor(nb.k):''}${nb.k?thumb(nb.k):''}</div>`; }
-    else if(!last){ body+=`<div class="nextcard"><div class="lbl">Next: set ${st.s+1}/${st.n}</div><div class="exname">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div></div>`; }
+    if(last){ body+=`<div class="donecard"><div class="lbl ok big">Done ✓</div><div class="exname">${esc(rxShow(b,ph,w,day).split(',')[0])} ${esc(b.n)}</div>${fbButtons(st.i,true)}</div>`; }
+    if(last && nb){ body+=`<div class="nextcard"><div class="lbl accent big">Next set</div><div class="exname">${esc(rxShow(nb,ph,w,day).split(',')[0])} ${esc(nb.n)}</div><div class="cue">${esc(nb.cue)}</div>${nb.k?recoFor(nb.k):''}${nb.k?thumb(nb.k):''}</div>`; }
+    else if(!last){ const rxb=rxShow(b,ph,w,day); const rpb=repPart(rxb); body+=`<div class="nextcard"><div class="lbl accent big">Next: set ${st.s+1}/${st.n}</div><div class="exname">${esc(rpb.num)}${rpb.unit?' '+esc(rpb.unit):''} × ${esc(b.n)}</div></div>`; }
     actions=`<button class="btn" id="gNext">Skip rest</button><div class="small-row"><button class="btn ghost" id="gPlus">+30 s</button><button class="btn ghost" id="gPrev">Back</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
   }
   document.getElementById('gfBody').innerHTML=body; document.getElementById('gfActions').innerHTML=actions; document.getElementById('gfBody').scrollTop=0;
@@ -696,9 +759,9 @@ function renderRecap(day, ph, w){
   const mins=Math.max(1,Math.round((guided.endedAt-guided.startedAt)/60000));
   const k=sessionKey(w,day.id); const checks=state.checks[k]||[];
   const rows=activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); const n=setsFor(b,ph,w,day); const doneSets=guided.seq.filter((x,idx)=>x.t==='work'&&x.i===i&&guided.done.has(idx)).length; const on=checks[i]!==false && doneSets>0;
-    return `<div class="ex ${on?'on':''}"><button class="chk" data-rcheck="${i}" aria-label="${esc(b.n)}">${on?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${doneSets}/${n} sets${doneSets===0?' · skipped':''}</div>${hasLoadField(b0,b)?loadField(b.k):''}${fbButtons(i)}</div><span></span></div>`; }).join('');
+    return `<div class="ex ${on?'on':''}"><button class="chk" data-rcheck="${i}" aria-label="${esc(b.n)}">${on?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${doneSets}/${n} sets${doneSets===0?' · skipped':''}</div>${hasLoadField(b0,b)?loadField(b.k):''}${fbButtons(i,true)}</div><span></span></div>`; }).join('');
   return `<div class="card recap"><div class="lbl meta">${esc(day.name)} · ${esc(day.title)}</div><h3 class="display" style="font-size:30px">Session complete</h3><div class="pills"><span class="pill">Duration ${mins} min</span><span class="pill">${guided.done.size} sets</span></div><p class="note">Fix anything if needed: uncheck an exercise you didn\'t do, adjust a load.</p>${rows}<hr>
-    <div class="stack"><label class="field"><span>How hard did it feel? (1 easy – 10 all-out)</span><input type="range" min="1" max="10" value="7" id="rpe" style="padding:0"><span class="note" id="rpeVal">7/10</span></label><p class="note">Your answer drives the load recommendation for next session.</p>
+    <div class="stack"><input type="hidden" id="rpe" value="7"><label class="field"><span>Average BPM (watch, optional)</span><input type="number" id="sbpm" inputmode="numeric" placeholder="ex. 135"></label>
     <label class="field"><span>Note</span><input type="text" id="snote" placeholder="…"></label>
     <button class="btn" id="finishBtn">Save the session</button><button class="btn ghost small" id="discardBtn">Discard without saving</button></div></div>`;
 }
@@ -707,12 +770,13 @@ function bindGuided(root){ root=root||document;
   const s=root.querySelector('#gSkip'); if(s) s.onclick=()=>{ if(confirm('Skip this exercise? You can come back with « Back ».')) guidedSkipExercise(); };
   const p=root.querySelector('#gPrev'); if(p) p.onclick=guidedPrev;
   const ts=root.querySelector('#gTimerStart'); if(ts) ts.onclick=()=>startWorkTimer(+ts.dataset.secs);
+  const ivb=root.querySelector('#gIvStart'); if(ivb) ivb.onclick=()=>startIntervals(+ivb.dataset.on, +ivb.dataset.off, +ivb.dataset.rounds);
   const q=root.querySelector('#gQuit'); if(q) q.onclick=()=>{ if(confirm('Quit guided mode? Completed exercises stay checked.')){ stopGuided(); renderToday(); } };
   const pl=root.querySelector('#gPlus'); if(pl) pl.onclick=()=>{ guided.restLeft+=30; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(guided.restLeft); };
   const r=document.getElementById('rpe'); if(r){ r.oninput=()=>{ const v=document.getElementById('rpeVal'); if(v) v.textContent=r.value+'/10'; }; }
   root.querySelectorAll('[data-rcheck]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.rcheck; const day=DAYS[guided.day]; const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[i]=!(arr[i]!==false && b.textContent==='✓'); state.checks[k]=arr; persist(); if(!arr[i]){ guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.delete(idx); }); } else { guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.add(idx); }); } renderToday(); });
   const d=document.getElementById('discardBtn'); if(d) d.onclick=()=>{ if(confirm('Discard this session? Nothing will be saved.')){ stopGuided(); renderToday(); } };
-  root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=()=>{ guided.fb[+b.dataset.i]=b.dataset.fb; root.querySelectorAll('[data-fb][data-i="'+b.dataset.i+'"]').forEach(x=>x.setAttribute('aria-pressed', x===b)); });
+  root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=()=>{ setFb(+b.dataset.i, b.dataset.fb); root.querySelectorAll('[data-fb][data-i="'+b.dataset.i+'"]').forEach(x=>x.setAttribute('aria-pressed', x===b)); });
 }
 document.getElementById('gfVoice').onclick=()=>{ state.voice = state.voice===false ? true : false; persist(); if(guided.active) drawGuided(); };
 
@@ -817,7 +881,7 @@ function bindImages(root){
   root.querySelectorAll('[data-img]').forEach(i=>i.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f){ saveImage(i.dataset.img, f, i.parentElement); } e.target.value=''; });
   root.querySelectorAll('[data-vid]').forEach(i=>i.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) saveVideo(i.dataset.vid, f, i.parentElement); e.target.value=''; });
   root.querySelectorAll('[data-playvid]').forEach(b=>b.onclick=()=>{ ovKey=b.dataset.playvid; const img=document.getElementById('ovImg'); img.style.display='none'; const v=document.getElementById('ovVid'); v.src=vidSrc(ovKey); v.style.display='block'; v.play().catch(()=>{}); document.getElementById('ovCap').textContent=LIBMAP[ovKey]||ovKey; document.getElementById('ovDel').textContent='Delete video'; document.getElementById('overlay').classList.add('show'); });
-  root.querySelectorAll('[data-view]').forEach(i=>i.onclick=()=>{ ovKey=i.dataset.view; const v=document.getElementById('ovVid'); v.pause(); v.style.display='none'; const img=document.getElementById('ovImg'); img.style.display='block'; img.src=imgSrc(ovKey); document.getElementById('ovDel').textContent='Delete image'; document.getElementById('ovCap').textContent=LIBMAP[ovKey]||ovKey; document.getElementById('overlay').classList.add('show'); });
+  root.querySelectorAll('[data-view]').forEach(i=>i.onclick=()=>{ ovKey=i.dataset.view; const v=document.getElementById('ovVid'); v.pause(); v.style.display='none'; const img=document.getElementById('ovImg'); img.style.display='block'; img.src=imgSrc(ovKey); document.getElementById('ovDel').style.display=''; document.getElementById('ovDel').textContent='Delete image'; document.getElementById('ovCap').textContent=LIBMAP[ovKey]||ovKey; document.getElementById('overlay').classList.add('show'); });
 }
 document.getElementById('ovClose').onclick=()=>{ document.getElementById('overlay').classList.remove('show'); document.getElementById('ovVid').pause(); };
 document.getElementById('ovDel').onclick=()=>{ const vmode=document.getElementById('ovVid').style.display==='block'; if(ovKey && confirm(vmode?'Delete this video?':'Delete this image?')){ document.getElementById('overlay').classList.remove('show'); document.getElementById('ovVid').pause(); if(vmode) deleteVideo(ovKey); else deleteImage(ovKey); } };
@@ -881,6 +945,8 @@ function renderProgress(){
   html += `<div class="card"><h3>This week</h3><div class="kpi"><div><b>${wkSess.length}</b><span>sessions</span></div><div><b>${wkMin}</b><span>min of training</span></div><div><b>${streak}</b><span>weeks in a row (≥ 3 key sessions)</span></div></div></div>`;
   const logKeys=Object.keys(state.loadLog||{}).filter(k=>(state.loadLog[k]||[]).length);
   if(logKeys.length){ html += `<div class="card"><h3>Loads per exercise</h3><p class="note">Tap an exercise to see its curve. Loads come from your saved sessions.</p>${logKeys.map(k=>{ const L=state.loadLog[k]; const lastL=L[L.length-1]; return `<details class="how"><summary>${esc(LIBMAP[k]||k)} · ${lastL.load} kg</summary>${loadChart(k)}</details>`; }).join('')}</div>`; }
+  const bpmS=state.sessions.filter(s=>s.bpm||(s.run&&s.run.bpm)).map(s=>({x:'S'+s.week, v:s.bpm||s.run.bpm}));
+  if(bpmS.length>1) html += `<div class="card"><h3>Average BPM per session</h3>${seriesChart(bpmS)}</div>`;
   const last = state.tests[state.tests.length-1];
   html += `<div class="card"><h3>Tests</h3><p class="note">Do them before you start (week 0), then on the Sunday of weeks 4, 8 and 12. Warm up, rest 3 min between tests.</p>
   <div class="stack">
@@ -910,10 +976,11 @@ function renderProgress(){
   };
   app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ state.tests.splice(+b.dataset.del,1); persist(); renderProgress(); });
   const eb=document.getElementById('exportBtn'); if(eb) eb.onclick=async()=>{ const txt=JSON.stringify(state); try{ await navigator.clipboard.writeText(txt); toast('Data copied to the clipboard'); }catch(e){ prompt('Copy my data', txt); } };
-  const ib=document.getElementById('importBtn'); if(ib) ib.onclick=()=>{ const txt=prompt('Paste here the data copied from the other version of the app:'); if(!txt) return; try{ const d=JSON.parse(txt); if(!d||typeof d!=='object'||!Array.isArray(d.sessions)) throw 0; const keys={}; (state.sessions||[]).forEach(s=>keys[s.key]=1); d.sessions.forEach(s=>{ if(!keys[s.key]) state.sessions.push(s); }); state.tests=[...(state.tests||[]),...(d.tests||[]).filter(t=>!(state.tests||[]).some(x=>x.week===t.week&&x.date===t.date))].sort((a,b)=>a.week-b.week); state.loads=Object.assign({},d.loads||{},state.loads||{}); state.loadLog=Object.assign({},d.loadLog||{},state.loadLog||{}); state.lastRpe=Object.assign({},d.lastRpe||{},state.lastRpe||{}); state.checks=Object.assign({},d.checks||{},state.checks||{}); if(d.start && d.start!==state.start){ if(!state.start || confirm('The imported data has a different start date. Use '+d.start+' ?')) state.start=d.start; } if(d.cycle) state.cycle=Math.max(state.cycle||1,d.cycle); persist(); toast('Data imported'); render(); }catch(e){ toast('Unreadable data'); } };
+  const ib=document.getElementById('importBtn'); if(ib) ib.onclick=()=>{ const txt=prompt('Paste here the data copied from the other version of the app:'); if(!txt) return; try{ const d=JSON.parse(txt); if(!d||typeof d!=='object'||!Array.isArray(d.sessions)) throw 0; const keys={}; (state.sessions||[]).forEach(s=>keys[s.key]=1); d.sessions.forEach(s=>{ if(!keys[s.key]) state.sessions.push(s); }); state.tests=[...(state.tests||[]),...(d.tests||[]).filter(t=>!(state.tests||[]).some(x=>x.week===t.week&&x.date===t.date))].sort((a,b)=>a.week-b.week); state.loads=Object.assign({},d.loads||{},state.loads||{}); state.loadLog=Object.assign({},d.loadLog||{},state.loadLog||{}); state.fbs=Object.assign({},d.fbs||{},state.fbs||{}); state.lastRpe=Object.assign({},d.lastRpe||{},state.lastRpe||{}); state.checks=Object.assign({},d.checks||{},state.checks||{}); if(d.start && d.start!==state.start){ if(!state.start || confirm('The imported data has a different start date. Use '+d.start+' ?')) state.start=d.start; } if(d.cycle) state.cycle=Math.max(state.cycle||1,d.cycle); persist(); toast('Data imported'); render(); }catch(e){ toast('Unreadable data'); } };
   const si=document.getElementById('startIn'); if(si) si.onchange=e=>{ if(e.target.value){ state.start=iso(mondayOf(new Date(e.target.value+'T00:00:00'))); persist(); render(); } };
   document.getElementById('resetAll').onclick=()=>{ if(confirm('Erase all history and start over?')){ state={start:null, weight:state.weight, checks:{}, sessions:[], tests:[], amrapRounds:{}, images:state.images||{}, place:state.place, loads:state.loads||{}, cycle:1}; persist(); render(); } };
 }
+function seriesChart(pts, pace){ if(pts.length<2) return ''; const W=320,H=110,p=18; const vals=pts.map(t=>t.v); let mn=Math.min(...vals), mx=Math.max(...vals); if(mx===mn){mx+=1;mn-=1;} const x=i=>p+i*(W-2*p)/(pts.length-1), y=v=>H-p-(v-mn)*(H-2*p)/(mx-mn); return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img"><polyline points="${pts.map((t,i)=>`${x(i)},${y(t.v)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>${pts.map((t,i)=>`<circle cx="${x(i)}" cy="${y(t.v)}" r="4" fill="var(--accent)"/><text x="${x(i)}" y="${y(t.v)-9}" font-size="11" text-anchor="middle" fill="var(--ink)">${pace?fmt(t.v*60):t.v}</text><text x="${x(i)}" y="${H-3}" font-size="10" text-anchor="middle" fill="var(--ink-2)">${t.x}</text>`).join('')}</svg>`; }
 function loadChart(k){ const L=(state.loadLog||{})[k]||[]; if(L.length<2) return `<p class="note">${L.length?L[0].d+' · '+L[0].load+' kg':''}</p>`; const W=320,H=110,p=18; const vals=L.map(x=>x.load); let mn=Math.min(...vals), mx=Math.max(...vals); if(mx===mn){mx+=1;mn-=1;} const x=i=>p+i*(W-2*p)/(L.length-1), y=v=>H-p-(v-mn)*(H-2*p)/(mx-mn); return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img"><polyline points="${L.map((t,i)=>`${x(i)},${y(t.load)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>${L.map((t,i)=>`<circle cx="${x(i)}" cy="${y(t.load)}" r="4" fill="var(--accent)"/><text x="${x(i)}" y="${y(t.load)-9}" font-size="11" text-anchor="middle" fill="var(--ink)">${t.load}</text><text x="${x(i)}" y="${H-3}" font-size="10" text-anchor="middle" fill="var(--ink-2)">S${t.w}</text>`).join('')}</svg>`; }
 function chart(title,key){
   const pts = state.tests.filter(t=>t[key]!=null); if(pts.length<2) return '';
