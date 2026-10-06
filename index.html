@@ -194,6 +194,11 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .fb.compact{margin:8px 0 0}
 .fb.compact .row{grid-template-columns:repeat(3,minmax(0,1fr));max-width:280px}
 .fb.compact button{padding:6px 4px;font-size:12.5px}
+.fb.compact .row{grid-template-columns:repeat(4,minmax(0,1fr));max-width:340px}
+.fb button.skipbtn{color:var(--ink-2);border-style:dashed}
+.fb button.skipbtn[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
+.ex.skipped .name{text-decoration:line-through;color:var(--ink-2)}
+.ex.skipped .chk{border-color:var(--warn);color:var(--warn)}
 .fb .row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
 .fb button{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 4px;font-weight:700;font-size:13px}
 .fb button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
@@ -544,7 +549,7 @@ function renderToday(){
     if(deload && day.kind==='sets') html += `<p class="pill warn">Lighter week: one set fewer per exercise</p>`;
     if(gymOn() && day.kind==='sets') html += `<p class="note">Gym: pick a load that leaves 2 reps in the tank on the last set. All reps completed two sessions in a row → +2.5 kg (upper body) or +5 kg (lower body). Log your load under each exercise.</p>`;
     if(guided.finished && guided.week===w && guided.day===dIdx){ html += renderRecap(day, ph, w); }
-    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':''}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${(!isDone(w,day.id) && (day.kind==='sets'||day.kind==='recovery'))?fbButtons(i,true):''}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>`; }).join('')+`</div>`;
+    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''} ${checks[i]===false?'skipped':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':(checks[i]===false?'✕':'')}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${(!isDone(w,day.id) && (day.kind==='sets'||day.kind==='recovery'))?fbButtons(i,true,true):''}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>`; }).join('')+`</div>`;
   }
   if(day.kind==='amrap'){
     const mins = expressOn()?Math.min(day.minutes[ph],15):day.minutes[ph];
@@ -563,7 +568,7 @@ function renderToday(){
   if(day.kind==='rest'){
     html += `<div class="card"><ul class="plain">${day.list.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
   }
-  const allChecked = (day.kind==='sets'||day.kind==='recovery') ? activeBlocks(day,ph,w).every(({i})=>checks[i]) : (day.kind==='amrap'||day.kind==='rounds') ? big.started : false;
+  const allChecked = (day.kind==='sets'||day.kind==='recovery') ? activeBlocks(day,ph,w).every(({i})=>checks[i]===true||checks[i]===false) : (day.kind==='amrap'||day.kind==='rounds') ? big.started : false;
   if(day.kind!=='rest' && state.start && !isDone(w,day.id) && !(guided.active||guided.finished) && !allChecked){ html += `<p class="note" style="margin:14px 0">Start the guided session, or check each exercise by hand: the « Finish the session » card appears once everything is done.</p>`; }
   if(day.kind!=='rest' && state.start && !isDone(w,day.id) && !(guided.active||guided.finished) && allChecked){
     html += `<div class="card"><h3>Finish the session</h3><p class="note">Easy / Ok / Hard under each exercise drives next time's load. With no answer, the exercise counts as « Ok ».</p><div class="stack">
@@ -581,13 +586,13 @@ function renderToday(){
   app.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{ view.day=+b.dataset.day; stopBig(); if(guided.active) stopGuided(); render(); });
   const sb=document.getElementById('startBtn'); if(sb) sb.onclick=()=>{ const td=new Date(); const dow=(td.getDay()+6)%7; const m=mondayOf(td); if(dow>=4) m.setDate(m.getDate()+7); state.start=iso(m); view.week=null; persist(); toast('Program started'); render(); };
   const rb=document.getElementById('restartBtn'); if(rb) rb.onclick=()=>{ if(confirm('Start the next cycle? Your history, loads and images are kept.')){ state.cycle=cycleN()+1; state.start=iso(mondayOf(new Date())); state.checks={}; persist(); render(); } };
-  app.querySelectorAll('[data-check]').forEach(b=>b.onclick=()=>{ const k=sessionKey(w,day.id); const arr=state.checks[k]||[]; arr[+b.dataset.check]=!arr[+b.dataset.check]; state.checks[k]=arr; persist(); renderToday(); });
+  app.querySelectorAll('[data-check]').forEach(b=>b.onclick=()=>{ const k=sessionKey(w,day.id); const arr=state.checks[k]||[]; const i=+b.dataset.check; arr[i]=!arr[i]; if(arr[i] && state.fbs&&state.fbs[k]&&state.fbs[k][i]==='skip') delete state.fbs[k][i]; state.checks[k]=arr; persist(); renderToday(); });
   app.querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>startRest(+b.dataset.rest));
   const fb=document.getElementById('finishBtn'); if(fb) fb.onclick=()=>{
     const rounds = big.rounds || 0; const durMin = guided.finished ? Math.max(1,Math.round((guided.endedAt-guided.startedAt)/60000)) : undefined;
     state.sessions.push({key:sessionKey(w,day.id), week:w, day:day.id, place:gymOn()?'gym':'home', date:iso(new Date()), rpe:+document.getElementById('rpe').value, note:document.getElementById('snote').value.trim(), bpm:(parseInt((document.getElementById('sbpm')||{}).value)||undefined), dur:durMin, rounds:rounds||undefined, time: (day.kind==='rounds' && big.elapsed)? big.elapsed : (day.kind==='amrap' && big.started ? big.secs-big.remaining : undefined), score: sessionScore(day, ph, w, rounds, (day.kind==='rounds'&&big.elapsed)?big.elapsed:0)});
     const rpeV=+document.getElementById('rpe').value; state.lastRpe=state.lastRpe||{}; state.loadLog=state.loadLog||{}; const FBR={easy:5,ok:7,hard:9}; const exList=[];
-    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false) return; const fb=(guided.active||guided.finished)?(guided.fb||{})[i]:(((state.fbs||{})[sessionKey(w,day.id)]||{})[i]); const r = fb?FBR[fb]:7; const hasLoad=(hasLoadField(b0,b)&&state.loads&&state.loads[b.k]!=null); state.lastRpe[b.k]={rpe:r, load:hasLoad?state.loads[b.k]:null, date:iso(new Date()), fb:fb||null}; if(hasLoad){ (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } const sets=guided.finished? guided.seq.filter((x,idx)=>x.t==='work'&&x.i===i&&guided.done.has(idx)).length : setsFor(b,ph,w,day); exList.push({k:b.k, n:b.n, sets, load:hasLoad?state.loads[b.k]:null, fb:fb||null, next:nextReco(b.k)}); }); }
+    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false){ exList.push({k:b.k, n:b.n, sets:0, load:null, fb:'skip', next:null}); return; } const fb=(guided.active||guided.finished)?(guided.fb||{})[i]:(((state.fbs||{})[sessionKey(w,day.id)]||{})[i]); const r = fb?FBR[fb]:7; const hasLoad=(hasLoadField(b0,b)&&state.loads&&state.loads[b.k]!=null); state.lastRpe[b.k]={rpe:r, load:hasLoad?state.loads[b.k]:null, date:iso(new Date()), fb:fb||null}; if(hasLoad){ (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } const sets=guided.finished? guided.seq.filter((x,idx)=>x.t==='work'&&x.i===i&&guided.done.has(idx)).length : setsFor(b,ph,w,day); exList.push({k:b.k, n:b.n, sets, load:hasLoad?state.loads[b.k]:null, fb:fb||null, next:nextReco(b.k)}); }); }
     const sess=state.sessions[state.sessions.length-1]; sess.ex=exList; const fbsAll=exList.filter(e=>e.fb); if(fbsAll.length) sess.rpe=Math.round(fbsAll.reduce((t,e)=>t+FBR[e.fb],0)/fbsAll.length);
     persist(); stopBig(); if(guided.finished) stopGuided(); toast('Session saved'); renderToday();
   };
@@ -612,7 +617,7 @@ function scoreArrow(wk, id){
 }
 
 /* ===================== Carte séance enregistrée + partage ===================== */
-const FBL={easy:'Easy',ok:'Ok',hard:'Hard'};
+const FBL={skip:'Skipped',easy:'Easy',ok:'Ok',hard:'Hard'};
 function savedCard(s, day){
   const ex=s.ex||[]; const fbs=ex.filter(e=>e.fb); const score=fbs.length? (fbs.reduce((t,e)=>t+({easy:1,ok:2,hard:3}[e.fb]),0)/fbs.length) : null;
   const mood = score==null?'':(score<1.5?'overall easy → going up':score>2.5?'overall hard → consolidating':'well calibrated');
@@ -723,8 +728,8 @@ function startWorkTimer(secs){
 }
 function finishGuided(){ clearGuidedTimers(); guided.finished=true; guided.endedAt=Date.now(); beep(3); closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} } renderToday(); }
 function curFb(i){ if(guided.active||guided.finished) return guided.fb[i]||''; const k=sessionKey(view.week??currentWeek(), DAYS[view.day??todayIdx()].id); return ((state.fbs||{})[k]||{})[i]||''; }
-function setFb(i,v){ if(guided.active||guided.finished){ guided.fb[i]=v; return; } const k=sessionKey(view.week??currentWeek(), DAYS[view.day??todayIdx()].id); state.fbs=state.fbs||{}; state.fbs[k]=state.fbs[k]||{}; state.fbs[k][i]=v; persist(); }
-function fbButtons(i, compact){ const v=curFb(i); const lbl = compact ? '' : `<div class="lbl">How was that exercise?</div>`; return `<div class="fb ${compact?'compact':''}">${lbl}<div class="row"><button data-fb="easy" data-i="${i}" aria-pressed="${v==='easy'}">Easy</button><button data-fb="ok" data-i="${i}" aria-pressed="${v==='ok'}">Ok</button><button data-fb="hard" data-i="${i}" aria-pressed="${v==='hard'}">Hard</button></div>${compact?'':'<div class="note" style="margin-top:6px">Drives next time\'s recommended load.</div>'}</div>`; }
+function setFb(i,v){ if(guided.active||guided.finished){ guided.fb[i]=v; return; } const k=sessionKey(view.week??currentWeek(), DAYS[view.day??todayIdx()].id); state.fbs=state.fbs||{}; state.fbs[k]=state.fbs[k]||{}; state.fbs[k][i]=v; const arr=state.checks[k]||[]; if(v==='skip'){ arr[i]=false; } else if(arr[i]===false){ arr[i]=true; } state.checks[k]=arr; persist(); renderToday(); }
+function fbButtons(i, compact, allowSkip){ const v=curFb(i); const lbl = compact ? '' : `<div class="lbl">How was that exercise?</div>`; return `<div class="fb ${compact?'compact':''}">${lbl}<div class="row"><button data-fb="easy" data-i="${i}" aria-pressed="${v==='easy'}">Easy</button><button data-fb="ok" data-i="${i}" aria-pressed="${v==='ok'}">Ok</button><button data-fb="hard" data-i="${i}" aria-pressed="${v==='hard'}">Hard</button>${allowSkip?`<button data-fb="skip" data-i="${i}" aria-pressed="${v==='skip'}" class="skipbtn">Skipped</button>`:''}</div>${compact?'':'<div class="note" style="margin-top:6px">Drives next time\'s recommended load.</div>'}</div>`; }
 function drawGuided(){
   if(!guided.active) return;
   const day=DAYS[guided.day]; const w=guided.week; const ph=phaseOf(w); curDay=day;
