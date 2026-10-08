@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Strong Mom - Personal program</title>
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#B3261E">
@@ -31,8 +31,8 @@
   --bg:#181B1A; --surface:#222624; --ink:#EEF1EE; --ink-2:#A2ABA6; --line:#343A37;
   --accent:#F0745C; --accent-ink:#3A0F0B; --soft:#4A3A22; --warn:#F0955C; --ok:#5FCB8E; --ok-soft:#1E3A2B;
 }
-html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-x:clip;-webkit-text-size-adjust:100%;text-size-adjust:100%}
-body{overflow-x:clip;max-width:100vw}
+html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-x:clip;overscroll-behavior-y:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{overflow-x:clip;max-width:100vw;overscroll-behavior-y:none;min-height:100.5vh}
 main{min-width:0}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));}
@@ -110,7 +110,7 @@ th{color:var(--ink-2);font-weight:600;border-top:0}
 .field span{color:var(--ink-2)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 svg.chart{width:100%;height:120px;display:block}
-.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+.tabs{position:fixed;left:0;right:0;bottom:0;transform:translateZ(0);will-change:transform;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
 .tabs button{flex:1;display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--ink-2);padding:6px 4px;border-radius:10px;letter-spacing:.01em}
 .tabs button[aria-current="page"]{color:var(--accent)}
 .tabs svg{width:22px;height:22px}
@@ -222,6 +222,9 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .gf-actions .small-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .gf-actions .small-row .btn{min-height:42px;font-size:14px}
 .gf .timerbox{margin-top:14px}
+.gf .remain{text-align:left;margin:6px auto 0;padding:0 0 0 20px;max-width:36ch;color:var(--ink-2);font-size:13.5px}
+.gf .remain li{margin:4px 0}
+.gf .nextcard .how{margin:8px 0 0;max-width:none}
 .gf .circlist{text-align:left;margin:18px auto 0;padding:0 0 0 22px;max-width:36ch;color:var(--ink-2);font-size:15px}
 .gf .circlist li{margin:6px 0;padding-left:4px}
 .gf .circlist li.cur{color:var(--ink);font-weight:800;font-size:17px}
@@ -464,11 +467,15 @@ function placeChips(){ return `<div class="chips" style="padding-top:0"><button 
 const NOLOAD = new Set(['rower','bike','hangingknee','planche','hollow','deadbug','finisherhome','mobilite','wallsit','stepdown','pont','mollets','burpee','birddog','pont1','abduction','kickback','suitcase','halo','pullapart','pullthrough','hundred','rollup','singleleg','bridgemarch','sidekick','swimming','sunsal','chair','warrior2','warrior3','crescent','bridgeyoga','boat','childs','pigeon','pompesg','pompes','pike','dips','row1']);
 function hasLoadField(b0,b){ return gymOn() && !!b0.g && !NOLOAD.has(b.k); }
 const LOWER = new Set(['backsquat','frontsquat','legpress','rdl','hipthrustbar','smithhipthrust','walkinglunge','bulgare','legcurl','stepupdb','hipthrustmachine','hipthrust1g','kbswing16']);
-function recoFor(k){ const r=(state.lastRpe||{})[k]; if(!r) return '';
-  if(r.load==null){ if(r.rpe<=6) return `<div class="reco up">Too easy last time → add 2 reps per set (or 10 s on holds), or move to the harder variation.</div>`; if(r.rpe>=9) return `<div class="reco dn">Too hard last time → keep the same reps, or go back to the easier variation.</div>`; return ''; }
-  const step=LOWER.has(k)?5:2.5; let txt, cls='eq';
-  if(r.rpe<=6){ txt='try '+(r.load+step)+' kg ▲'; cls='up'; } else if(r.rpe>=9){ txt='go down to '+Math.max(0,r.load-step)+' kg ▼'; cls='dn'; } else { txt='keep '+r.load+' kg ='; }
-  return `<div class="reco ${cls}">Last time : ${r.load} kg · ${r.rpe}/10 → ${txt}</div>`; }
+function recoFor(k){ const r=(state.lastRpe||{})[k]; const n=adjOf(k,curPh());
+  if(!r){ return n>0?`<div class="reco up">Auto progression: step ${n}/3 (+${2*n} reps, or +${10*n} s on holds, over the base prescription).</div>`:''; }
+  if(r.load==null){
+    if(r.rpe<=6){ if(n>=ADJ_MAX) return `<div class="reco up">Easy and already at step 3/3: move to the harder variation (the next phase's).</div>`; return `<div class="reco up">Easy last time → prescription raised one step (+2 reps, or +10 s on holds) · step ${n}/3.</div>`; }
+    if(r.rpe>=9) return `<div class="reco dn">Hard last time → ${n>0?`prescription lowered one step (step ${n}/3)`:'base prescription, technique first'}.</div>`;
+    return n>0?`<div class="reco eq">Auto progression: step ${n}/3 (+${2*n} reps, or +${10*n} s on holds).</div>`:''; }
+  const step=LOWER.has(k)?5:2.5; const cur=(state.loads||{})[k]; let txt, cls='eq';
+  if(r.rpe<=6){ txt='today '+(cur!=null?cur:r.load+step)+' kg ▲ (pre-filled)'; cls='up'; } else if(r.rpe>=9){ txt='today '+(cur!=null?cur:Math.max(0,r.load-step))+' kg ▼ (pre-filled)'; cls='dn'; } else { txt='keep '+r.load+' kg ='; }
+  return `<div class="reco ${cls}">Last time: ${r.load} kg · ${r.fb==='easy'?'easy':r.fb==='hard'?'hard':'ok'} → ${txt}</div>`; }
 function loadField(k){ state.loads=state.loads||{}; const v=state.loads[k]; return `<label class="loadf"><span>Load</span><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${v!=null?v:''}" data-load="${k}"></label>${recoFor(k)}`; }
 function bindPlace(root){
   root.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>{ state.placeByDay=state.placeByDay||{}; if(curDay) state.placeByDay[curDay.id]=b.dataset.place; state.place=b.dataset.place; persist(); if(guided.active) stopGuided(); rerender(); });
@@ -478,11 +485,16 @@ function bindPlace(root){
 
 /* ===================== Durée & mode express ===================== */
 function expressOn(){ return !!state.express; }
-function restFor(day,ph){ const base = day.rest ? (ph===2?Math.max(45,day.rest-30):day.rest) : 45; return expressOn()? Math.min(base,45) : base; }
+const CORE = new Set(['planche','hollow','deadbug','birddog','mollets','wallsit','pont','pont1','abduction','kickback','pullapart','halo','hangingknee','hundred','rollup','singleleg','bridgemarch','sidekick','swimming','mobilite','suitcase','stepdown']);
+function restFor(day,ph,b){ const base = day.rest ? (ph===2?Math.max(45,day.rest-30):day.rest) : 45; let r = expressOn()? Math.min(base,45) : base; if(b && CORE.has(b.k)) r=Math.min(r, expressOn()?30:45); return r; }
 function setsFor(b,ph,w,day){ let n=setsOf(rxFor(b.p[ph])); if((w===4||w===8) && day.kind==='sets') n=Math.max(1,n-1); if(expressOn()) n=Math.min(n,3); return n; }
-function rxShow(b,ph,w,day){ const n=setsFor(b,ph,w,day); return rxFor(b.p[ph]).replace(/^\d+(\s*×)/, (m,x)=>n+x); }
+function adjOf(k,ph){ const a=(state.adj||{})[k]; if(!a||a.ph!==ph) return 0; return a.n||0; }
+function curPh(){ return phaseOf((guided.active||guided.finished)?guided.week:(view.week??currentWeek())); }
+const ADJ_MAX=3;
+function bumpRx(rx,k,ph){ const n=adjOf(k,ph); if(!n) return rx; if(/×\s*\d+\s*min\b/.test(rx)) return rx; if(/×\s*\d+\s*s\b/.test(rx)) return rx.replace(/(×\s*)(\d+)(\s*s\b)/, (m,a,v,c)=>a+(+v+10*n)+c); if(/×\s*\d+\s*m\b/.test(rx)) return rx.replace(/(×\s*)(\d+)(\s*m\b)/, (m,a,v,c)=>a+(+v+10*n)+c); return rx.replace(/(×\s*)(\d+)/, (m,a,v)=>a+(+v+2*n)); }
+function rxShow(b,ph,w,day){ const n=setsFor(b,ph,w,day); return bumpRx(rxFor(b.p[ph]).replace(/^\d+(\s*×)/, (m,x)=>n+x), b.k, ph); }
 function warmMin(){ return expressOn()?3:5; }
-function blocksMin(day,ph,w,list){ const r=restFor(day,ph); return list.reduce((t,x)=>{ const b=bx(x.b0); return t + setsFor(b,ph,w,day)*(45+r)/60; },0); }
+function blocksMin(day,ph,w,list){ return list.reduce((t,x)=>{ const b=bx(x.b0); return t + setsFor(b,ph,w,day)*(45+restFor(day,ph,b))/60; },0); }
 function activeBlocks(day,ph,w){
   const all=day.blocks.map((b0,i)=>({b0,i})); if(!expressOn()) return all;
   const fixed = day.kind==='recovery' ? 10 : warmMin();
@@ -565,7 +577,7 @@ function renderToday(){
     if(deload && day.kind==='sets') html += `<p class="pill warn">Lighter week: one set fewer per exercise</p>`;
     if(gymOn() && day.kind==='sets') html += `<p class="note">Gym: pick a load that leaves 2 reps in the tank on the last set. All reps completed two sessions in a row → +2.5 kg (upper body) or +5 kg (lower body). Log your load under each exercise.</p>`;
     if(guided.finished && guided.week===w && guided.day===dIdx){ html += renderRecap(day, ph, w); }
-    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''} ${checks[i]===false?'skipped':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':(checks[i]===false?'✕':'')}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph)}">Rest ${restFor(day,ph)} s</button>`:'<span></span>'}</div>${(!isDone(w,day.id) && (day.kind==='sets'||day.kind==='recovery'))?`<div class="exfb">${fbButtons(i,true,true)}</div>`:''}`; }).join('')+`</div>`;
+    else html += `<div class="row" style="margin:10px 0"><button class="btn" id="goBtn" style="flex:1">Go · guided session</button></div>` + `<div class="card">`+activeBlocks(day,ph,w).map(({b0,i})=>{ const b=bx(b0); return `<div class="ex ${checks[i]?'on':''} ${checks[i]===false?'skipped':''}" data-i="${i}"><button class="chk" aria-label="Check off ${esc(b.n)}" data-check="${i}">${checks[i]?'✓':(checks[i]===false?'✕':'')}</button><div><div class="name">${esc(b.n)}</div><div class="rx">${esc(rxShow(b,ph,w,day))}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?imgTools(b.k):''}</div>${day.kind==='sets'?`<button class="rest" data-rest="${restFor(day,ph,b)}">Rest ${restFor(day,ph,b)} s</button>`:'<span></span>'}</div>${(!isDone(w,day.id) && (day.kind==='sets'||day.kind==='recovery'))?`<div class="exfb">${fbButtons(i,true,true)}</div>`:''}`; }).join('')+`</div>`;
   }
   if(day.kind==='amrap'){
     const mins = expressOn()?Math.min(day.minutes[ph],15):day.minutes[ph];
@@ -608,7 +620,7 @@ function renderToday(){
     const rounds = big.rounds || 0; const durMin = guided.finished ? Math.max(1,Math.round((guided.endedAt-guided.startedAt)/60000)) : undefined;
     state.sessions.push({key:sessionKey(w,day.id), week:w, day:day.id, title:day.title, place:gymOn()?'gym':'home', date:iso(new Date()), rpe:+document.getElementById('rpe').value, note:document.getElementById('snote').value.trim(), bpm:(parseInt((document.getElementById('sbpm')||{}).value)||undefined), dur:durMin, rounds:rounds||undefined, time: (day.kind==='rounds' && big.elapsed)? big.elapsed : (day.kind==='amrap' && big.started ? big.secs-big.remaining : undefined), score: sessionScore(day, ph, w, rounds, (day.kind==='rounds'&&big.elapsed)?big.elapsed:0)});
     const rpeV=+document.getElementById('rpe').value; state.lastRpe=state.lastRpe||{}; state.loadLog=state.loadLog||{}; const FBR={easy:5,ok:7,hard:9}; const exList=[];
-    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false){ exList.push({k:b.k, n:b.n, sets:0, load:null, fb:'skip', next:null}); return; } const fb=(guided.active||guided.finished)?(guided.fb||{})[i]:(((state.fbs||{})[sessionKey(w,day.id)]||{})[i]); const r = fb?FBR[fb]:7; const hasLoad=(hasLoadField(b0,b)&&state.loads&&state.loads[b.k]!=null); state.lastRpe[b.k]={rpe:r, load:hasLoad?state.loads[b.k]:null, date:iso(new Date()), fb:fb||null}; if(hasLoad){ (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } const sets=guided.finished? guided.seq.filter((x,idx)=>x.t==='work'&&x.i===i&&guided.done.has(idx)).length : setsFor(b,ph,w,day); exList.push({k:b.k, n:b.n, sets, load:hasLoad?state.loads[b.k]:null, fb:fb||null, next:nextReco(b.k)}); }); }
+    if(day.kind==='sets'||day.kind==='recovery'){ activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const chk=(state.checks[sessionKey(w,day.id)]||[])[i]; if(chk===false){ exList.push({k:b.k, n:b.n, sets:0, load:null, fb:'skip', next:null}); return; } const fb=(guided.active||guided.finished)?(guided.fb||{})[i]:(((state.fbs||{})[sessionKey(w,day.id)]||{})[i]); const r = fb?FBR[fb]:7; const hasLoad=(hasLoadField(b0,b)&&state.loads&&state.loads[b.k]!=null); state.lastRpe[b.k]={rpe:r, load:hasLoad?state.loads[b.k]:null, date:iso(new Date()), fb:fb||null}; if(hasLoad){ (state.loadLog[b.k]=state.loadLog[b.k]||[]).push({d:iso(new Date()), w:w, load:state.loads[b.k], fb:fb||null}); } const doneLoad=hasLoad?state.loads[b.k]:null; if(fb==='easy'||fb==='hard'){ if(hasLoad){ const step=LOWER.has(b.k)?5:2.5; state.loads[b.k]= fb==='easy'? Math.round((doneLoad+step)*2)/2 : Math.max(0,Math.round((doneLoad-step)*2)/2); } else if(b.k && !/^(mobilite|bike|rower|finisher|sunsal)/.test(b.k)){ state.adj=state.adj||{}; const a=state.adj[b.k]; const n0=(a&&a.ph===ph)?a.n:0; state.adj[b.k]={ph, n: fb==='easy'?Math.min(ADJ_MAX,n0+1):Math.max(0,n0-1)}; } } const sets=guided.finished? guided.seq.filter((x,idx)=>x.t==='work'&&x.i===i&&guided.done.has(idx)).length : setsFor(b,ph,w,day); exList.push({k:b.k, n:b.n, sets, load:doneLoad, fb:fb||null, next:nextReco(b.k)}); }); }
     const sess=state.sessions[state.sessions.length-1]; sess.ex=exList; const fbsAll=exList.filter(e=>e.fb); if(fbsAll.length) sess.rpe=Math.round(fbsAll.reduce((t,e)=>t+FBR[e.fb],0)/fbsAll.length);
     persist(); stopBig(); if(guided.finished) stopGuided(); toast('Session saved'); renderToday();
   };
@@ -623,7 +635,7 @@ function repsOf(rx){ const m=/×\s*(\d+)/.exec(rx); return m?+m[1]:1; }
 function sessionScore(day, ph, w, rounds, time){
   if(day.kind==='amrap') return rounds||0;
   if(day.kind==='rounds') return time? Math.round(-time/60*10)/10 : (rounds||0);
-  if(day.kind==='sets' || day.kind==='recovery'){ let s=0; activeBlocks(day,ph,w).forEach(({b0})=>{ const b=bx(b0); const n=setsFor(b,ph,w,day), r=repsOf(rxFor(b.p[ph])); const L=(gymOn()&&b0.g&&state.loads&&state.loads[b.k])||1; s+=n*r*L; }); return Math.round(s); }
+  if(day.kind==='sets' || day.kind==='recovery'){ let s=0; activeBlocks(day,ph,w).forEach(({b0})=>{ const b=bx(b0); const n=setsFor(b,ph,w,day), r=repsOf(rxShow(b,ph,w,day)); const L=(gymOn()&&b0.g&&state.loads&&state.loads[b.k])||1; s+=n*r*L; }); return Math.round(s); }
   return 0;
 }
 function scoreArrow(wk, id){
@@ -643,7 +655,7 @@ function savedCard(s, day){
   ${s.note?`<p class="note">${esc(s.note)}</p>`:''}
   <div class="row" style="margin-top:10px"><button class="btn small" id="shareBtn">Share the recap</button><button class="btn ghost small" id="undoBtn">Undo</button></div></div>`;
 }
-function nextReco(k){ const r=(state.lastRpe||{})[k]; if(!r) return null; if(r.load==null){ if(r.rpe<=6) return {cls:'up', txt:'+2 reps / +10 s'}; if(r.rpe>=9) return {cls:'dn', txt:'keep or ease off'}; return {cls:'eq', txt:'same'}; } const step=LOWER.has(k)?5:2.5; if(r.rpe<=6) return {cls:'up', txt:(r.load+step)+' kg'}; if(r.rpe>=9) return {cls:'dn', txt:Math.max(0,r.load-step)+' kg'}; return {cls:'eq', txt:r.load+' kg'}; }
+function nextReco(k){ const r=(state.lastRpe||{})[k]; if(!r) return null; const n=adjOf(k,curPh()); if(r.load==null){ if(r.rpe<=6) return n>=ADJ_MAX&&r.fb==='easy'? {cls:'up', txt:'harder variation'} : {cls:'up', txt:'+2 reps / +10 s'}; if(r.rpe>=9) return {cls:'dn', txt: r.fb==='hard'&&n>0?'−2 reps / −10 s':'same, technique'}; return {cls:'eq', txt:'same'}; } const cur=(state.loads||{})[k]; const step=LOWER.has(k)?5:2.5; if(r.rpe<=6) return {cls:'up', txt:(cur!=null?cur:r.load+step)+' kg'}; if(r.rpe>=9) return {cls:'dn', txt:(cur!=null?cur:Math.max(0,r.load-step))+' kg'}; return {cls:'eq', txt:r.load+' kg'}; }
 async function shareSession(s, day){
   const W=1080, H=1350; const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
   const cs=getComputedStyle(document.documentElement); const accent=cs.getPropertyValue('--accent').trim()||'#333';
@@ -680,8 +692,8 @@ let guided = {iv:{running:false,phase:'',left:0,round:0,rounds:0,int:null}, acti
 function setsOf(rx){ const m=/^(\d+)\s*×/.exec(rx); return m?+m[1]:1; }
 function timedSecs(rx){ let m=/×\s*(\d+)\s*(min|s)\b/.exec(rx); if(!m) m=/^(\d+)\s*(min)\b/.exec(rx); if(!m) return 0; return m[2]==='min'? +m[1]*60 : +m[1]; }
 function buildSeq(day, ph, w){
-  const seq=[]; const restSecs=restFor(day,ph);
-  activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const n=setsFor(b,ph,w,day); for(let s=1;s<=n;s++){ seq.push({t:'work',i,s,n}); seq.push({t:'rest',i,s,n,secs:restSecs}); } });
+  const seq=[];
+  activeBlocks(day,ph,w).forEach(({b0,i})=>{ const b=bx(b0); const n=setsFor(b,ph,w,day); const restSecs=restFor(day,ph,b); for(let s=1;s<=n;s++){ seq.push({t:'work',i,s,n}); seq.push({t:'rest',i,s,n,secs:restSecs}); } });
   seq.pop(); return seq;
 }
 function startGuided(day, ph, w, dIdx){
@@ -707,7 +719,9 @@ function guidedNext(){
     guided.restLeft=st.secs;
     const day=DAYS[guided.day]; const nxt=guided.seq.slice(guided.pos+1).find(x=>x.t==='work'); const nb=nxt?bx(day.blocks[nxt.i]):null;
     if(st.s===st.n && nb) setTimeout(()=>say('Next exercise: '+nb.n), 700);
-    guided.int=setInterval(()=>{ guided.restLeft--; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(guided.restLeft); countdownCue(guided.restLeft); if(guided.restLeft<=0){ if(state.voice!==false) say('Go'); else beep(2); guidedNext(); } },1000);
+    guided.restEnd=Date.now()+st.secs*1000;
+    guided.tick=()=>{ if(!guided.active) return; const nl=Math.max(0,Math.ceil((guided.restEnd-Date.now())/1000)); if(nl===guided.restLeft) return; const prev=guided.restLeft; guided.restLeft=nl; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(nl); if(prev-nl===1) countdownCue(nl); if(nl<=0){ clearInterval(guided.int); guided.tick=null; if(state.voice!==false) say('Go'); else beep(2); guidedNext(); } };
+    guided.int=setInterval(guided.tick,400);
   }
   drawGuided();
 }
@@ -729,17 +743,22 @@ function repPart(rx){ const m=/×\s*(.*)$/.exec(rx); const s=(m?m[1]:rx).trim();
 function startIntervals(on, off, rounds){
   clearInterval(guided.iv.int); guided.iv={running:true, phase:'pre', left:3, round:1, rounds, on, off, int:null};
   say('3'); drawIvTick();
-  guided.iv.int=setInterval(()=>{ const v=guided.iv; v.left--;
-    if(v.phase==='pre'){ if(v.left>0){ say(String(v.left)); } else { v.phase='on'; v.left=on; say('Go'); beep(1); } }
-    else if(v.phase==='on'){ if(v.left>0 && v.left<=3) countdownCue(v.left); if(v.left<=0){ v.phase='off'; v.left=off; beep(2); say('Easy'); } }
-    else if(v.phase==='off'){ if(v.left>0 && v.left<=3) countdownCue(v.left); if(v.left<=0){ v.round++; if(v.round>v.rounds){ clearInterval(v.int); v.running=false; beep(3); say('Done'); guidedNext(); return; } v.phase='on'; v.left=on; beep(1); say('Go'); } }
-    drawIvTick(); },1000);
+  guided.iv.phaseEnd=Date.now()+3000;
+  guided.iv.tick=()=>{ const v=guided.iv; if(!v.running) return; const nl=Math.max(0,Math.ceil((v.phaseEnd-Date.now())/1000)); if(nl===v.left) return; const prev=v.left; v.left=nl;
+    if(v.left>0){ if(prev-v.left===1){ if(v.phase==='pre') say(String(v.left)); else if(v.left<=3) countdownCue(v.left); } drawIvTick(); return; }
+    if(v.phase==='pre'){ v.phase='on'; v.left=on; v.phaseEnd=Date.now()+on*1000; say('Go'); beep(1); }
+    else if(v.phase==='on'){ v.phase='off'; v.left=off; v.phaseEnd=Date.now()+off*1000; beep(2); say('Easy'); }
+    else { v.round++; if(v.round>v.rounds){ clearInterval(v.int); v.running=false; v.tick=null; beep(3); say('Done'); guidedNext(); return; } v.phase='on'; v.left=on; v.phaseEnd=Date.now()+on*1000; beep(1); say('Go'); }
+    drawIvTick(); };
+  guided.iv.int=setInterval(guided.iv.tick,400);
   const b=document.getElementById('gIvStart'); if(b){ b.disabled=true; b.textContent='Running…'; }
 }
 function drawIvTick(){ const v=guided.iv; const el=document.getElementById('gWork'); if(el){ el.textContent=fmt(v.left); el.classList.toggle('off', v.phase==='off'); } const p=document.getElementById('ivPhase'); if(p) p.textContent = v.phase==='pre'?'READY':(v.phase==='on'?'HARD':'EASY'); const r=document.getElementById('ivRound'); if(r) r.textContent='Round '+Math.min(v.round,v.rounds)+'/'+v.rounds; }
 function startWorkTimer(secs){
   clearInterval(guided.work.int); guided.work.left=secs; guided.work.running=true; say('Go');
-  guided.work.int=setInterval(()=>{ guided.work.left--; const el=document.getElementById('gWork'); if(el) el.textContent=fmt(guided.work.left); countdownCue(guided.work.left); if(guided.work.left<=0){ clearInterval(guided.work.int); guided.work.running=false; beep(2); guidedNext(); } },1000);
+  guided.work.end=Date.now()+secs*1000;
+  guided.work.tick=()=>{ const w2=guided.work; if(!w2.running) return; const nl=Math.max(0,Math.ceil((w2.end-Date.now())/1000)); if(nl===w2.left) return; const prev=w2.left; w2.left=nl; const el=document.getElementById('gWork'); if(el) el.textContent=fmt(nl); if(prev-nl===1) countdownCue(nl); if(nl<=0){ clearInterval(w2.int); w2.running=false; w2.tick=null; beep(2); guidedNext(); } };
+  guided.work.int=setInterval(guided.work.tick,400);
   const btn=document.getElementById('gTimerStart'); if(btn){ btn.textContent='Running…'; btn.disabled=true; }
 }
 function finishGuided(){ clearGuidedTimers(); guided.finished=true; guided.endedAt=Date.now(); beep(3); closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} } renderToday(); }
@@ -764,7 +783,7 @@ function drawGuided(){
   const gf=document.getElementById('gf'); gf.classList.toggle('rest', st.t==='rest');
   let body='', actions='';
   if(st.t==='work'){
-    const rx=rxShow(b,ph,w,day); const secs=timedSecs(rx); const iv=b.iv||null;
+    const rx=rxShow(b,ph,w,day); const secs=timedSecs(rx); const iv=b.iv?(Array.isArray(b.iv)?b.iv[ph]:b.iv):null;
     const rp=repPart(rx); const doneSets=guided.seq.filter((x,idx)=>x.t==='work'&&x.i===st.i&&guided.done.has(idx)).length; const repsN=repsOf(rx);
     const ivRounds = iv ? (iv.rounds || parseInt(rx) || 6) : 0; const key = iv ? `${ivRounds} × ${iv.on}/${iv.off} s` : (secs ? fmt(secs) : rp.num);
     body=`<div class="lbl">Set ${st.s} of ${st.n}</div><div class="count">${esc(key)}</div><div class="lbl" style="margin-top:-4px">${esc(iv?'intervals':(secs?'hold':rp.unit||'reps'))}</div><div class="exname">${esc(b.n)}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}`;
@@ -776,12 +795,19 @@ function drawGuided(){
     const nxt=guided.seq.slice(guided.pos+1).find(x=>x.t==='work' && x.i!==st.i); const nb0=nxt?day.blocks[nxt.i]:null; const nb=nb0?bx(nb0):null; const last=(st.s===st.n);
     body=`<div class="lbl">Rest</div><div class="count" id="gCount">${fmt(guided.restLeft)}</div>`;
     if(last){ body+=`<div class="donecard"><div class="lbl ok big">Done ✓</div><div class="exname">${esc(rxShow(b,ph,w,day).split(',')[0])} ${esc(b.n)}</div>${fbButtons(st.i,true)}</div>`; }
-    if(last && nb){ body+=`<div class="nextcard"><div class="lbl accent big">Next set</div><div class="exname">${esc(rxShow(nb,ph,w,day).split(',')[0])} ${esc(nb.n)}</div><div class="cue">${esc(nb.cue)}</div>${nb.k?recoFor(nb.k):''}${nb.k?thumb(nb.k):''}</div>`; }
+    if(last && nb){ body+=`<div class="nextcard"><div class="lbl accent big">Next set</div><div class="exname">${esc(rxShow(nb,ph,w,day).split(',')[0])} ${esc(nb.n)}</div><div class="cue">${esc(nb.cue)}</div>${nb.k?recoFor(nb.k):''}${nb.k?thumb(nb.k):''}${nb.k?`<div class="tools" style="margin-top:10px"><a class="link" href="${ytLink(nb.k)}" target="_blank" rel="noopener">▶ Video</a></div>${howHtml(nb.k)}`:''}</div>`; }
     else if(!last){ const rxb=rxShow(b,ph,w,day); const rpb=repPart(rxb); body+=`<div class="nextcard"><div class="lbl accent big">Next: set ${st.s+1}/${st.n}</div><div class="exname">${esc(rpb.num)}${rpb.unit?' '+esc(rpb.unit):''} × ${esc(b.n)}</div></div>`; }
+    body+=remainingHtml(day,ph,w);
     actions=`<button class="btn" id="gNext">Skip rest</button><div class="small-row"><button class="btn ghost" id="gPlus">+30 s</button><button class="btn ghost" id="gPrev">Back</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
   }
   document.getElementById('gfBody').innerHTML=body; document.getElementById('gfActions').innerHTML=actions; document.getElementById('gfBody').scrollTop=0;
   bindGuided(gf); bindImages(gf); bindPlace(gf);
+}
+function remainingHtml(day,ph,w){
+  const rows=[]; let i=-1;
+  guided.seq.slice(guided.pos+1).forEach(x=>{ if(x.t!=='work') return; if(x.i!==i){ i=x.i; rows.push({i, b:bx(day.blocks[i]), from:x.s, n:x.n}); } });
+  if(!rows.length) return '';
+  return `<div class="lbl" style="margin-top:22px">Remaining</div><ol class="remain">${rows.map(r=>{ const rx=rxShow(r.b,ph,w,day); const p=repPart(rx); const left=r.n-r.from+1; return `<li>${left<r.n?`${left}/${r.n}`:r.n} × ${esc(p.num)}${p.unit?' '+esc(p.unit):''} · ${esc(r.b.n)}</li>`; }).join('')}</ol>`;
 }
 function renderGuided(){ return ''; }
 function renderRecap(day, ph, w){
@@ -801,7 +827,7 @@ function bindGuided(root){ root=root||document;
   const ts=root.querySelector('#gTimerStart'); if(ts) ts.onclick=()=>startWorkTimer(+ts.dataset.secs);
   const ivb=root.querySelector('#gIvStart'); if(ivb) ivb.onclick=()=>startIntervals(+ivb.dataset.on, +ivb.dataset.off, +ivb.dataset.rounds);
   const q=root.querySelector('#gQuit'); if(q) q.onclick=()=>{ if(confirm('Quit guided mode? Completed exercises stay checked.')){ stopGuided(); renderToday(); } };
-  const pl=root.querySelector('#gPlus'); if(pl) pl.onclick=()=>{ guided.restLeft+=30; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(guided.restLeft); };
+  const pl=root.querySelector('#gPlus'); if(pl) pl.onclick=()=>{ guided.restLeft+=30; guided.restEnd=(guided.restEnd||Date.now())+30000; const el=document.getElementById('gCount'); if(el) el.textContent=fmt(guided.restLeft); };
   const r=document.getElementById('rpe'); if(r){ r.oninput=()=>{ const v=document.getElementById('rpeVal'); if(v) v.textContent=r.value+'/10'; }; }
   root.querySelectorAll('[data-rcheck]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.rcheck; const day=DAYS[guided.day]; const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[i]=!(arr[i]!==false && b.textContent==='✓'); state.checks[k]=arr; persist(); if(!arr[i]){ guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.delete(idx); }); } else { guided.seq.forEach((x,idx)=>{ if(x.t==='work'&&x.i===i) guided.done.add(idx); }); } renderToday(); });
   const d=document.getElementById('discardBtn'); if(d) d.onclick=()=>{ if(confirm('Discard this session? Nothing will be saved.')){ stopGuided(); renderToday(); } };
@@ -819,9 +845,13 @@ function startCircuit(day, ph, w){
   circ={active:true, kind:day.kind, items, keys, idx:0, round:1, rounds, secs, left:secs, elapsed:0, int:null, resting:false, restLeft:0, day, ph, w, cap};
   guided.scrollY=window.scrollY; document.body.classList.add('locked'); document.body.style.top=(-guided.scrollY)+'px'; document.getElementById('gf').classList.add('show');
   try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(l=>guided.wake=l).catch(()=>{}); }catch(e){}
-  circ.int=setInterval(()=>{ if(circ.resting){ circ.restLeft--; countdownCue(circ.restLeft); if(circ.restLeft<=0){ circ.resting=false; beep(1); say('Go'); drawCircuit(); return; } const el=document.getElementById('cRest'); if(el) el.textContent=fmt(circ.restLeft); return; }
-    if(circ.kind==='amrap'){ circ.left--; if(circ.left>0&&circ.left<=5) tickBeep(); if(circ.left<=0){ finishCircuit(true); return; } } else { circ.elapsed++; if(circ.cap && circ.elapsed===circ.cap){ beep(3); say('Cap reached, finish your round'); } }
-    const t=document.getElementById('gfElapsed'); if(t){ t.textContent = `Round ${circ.round}${isFinite(circ.rounds)?'/'+circ.rounds:''} · ${circ.kind==='amrap'? fmt(circ.left) : fmt(circ.elapsed)}`; t.classList.toggle('over', !!circ.cap && circ.elapsed>=circ.cap); } },1000);
+  circ.startAt=Date.now(); circ.acc=0; circ.capWarned=false;
+  circ.tick=()=>{ if(!circ.active) return;
+    if(circ.resting){ const nl=Math.max(0,Math.ceil((circ.restEnd-Date.now())/1000)); if(nl!==circ.restLeft){ const prev=circ.restLeft; circ.restLeft=nl; if(prev-nl===1) countdownCue(nl); const el=document.getElementById('cRest'); if(el) el.textContent=fmt(nl); if(nl<=0){ circ.resting=false; circ.startAt=Date.now(); beep(1); say('Go'); drawCircuit(); } } return; }
+    const el=circ.acc+Math.floor((Date.now()-circ.startAt)/1000); if(el===circ.elapsed) return; const prev=circ.elapsed; circ.elapsed=el;
+    if(circ.kind==='amrap'){ circ.left=Math.max(0,circ.secs-el); if(el-prev===1 && circ.left>0 && circ.left<=5) tickBeep(); if(circ.left<=0){ finishCircuit(true); return; } } else if(circ.cap && !circ.capWarned && el>=circ.cap){ circ.capWarned=true; beep(3); say('Cap reached, finish your round'); }
+    const t=document.getElementById('gfElapsed'); if(t){ t.textContent = `Round ${circ.round}${isFinite(circ.rounds)?'/'+circ.rounds:''} · ${circ.kind==='amrap'? fmt(circ.left) : fmt(circ.elapsed)}`; t.classList.toggle('over', !!circ.cap && circ.elapsed>=circ.cap); } };
+  circ.int=setInterval(circ.tick,400);
   drawCircuit(); say('Go');
 }
 function drawCircuit(){
@@ -850,17 +880,17 @@ function drawCircuit(){
   bindImages(gf);
 }
 function circNext(){
-  if(circ.resting){ circ.resting=false; drawCircuit(); return; }
+  if(circ.resting){ circ.resting=false; circ.startAt=Date.now(); drawCircuit(); return; }
   circ.idx++;
   if(circ.idx>=circ.items.length){ circ.idx=0; circ.round++; beep(2);
     if(isFinite(circ.rounds) && circ.round>circ.rounds){ finishCircuit(true); return; }
     say('Round '+circ.round);
-    if(circ.kind==='rounds' && circ.ph===0){ circ.resting=true; circ.restLeft=120; drawCircuit(); return; }
+    if(circ.kind==='rounds' && circ.ph===0){ circ.acc=circ.elapsed; circ.resting=true; circ.restLeft=120; circ.restEnd=Date.now()+120000; drawCircuit(); return; }
   } else { const it=parseItem(circ.items[circ.idx]); say(it.num+' '+it.name); }
   drawCircuit();
 }
 function circPrev(){
-  if(circ.resting){ circ.resting=false; circ.round--; circ.idx=circ.items.length-1; drawCircuit(); return; }
+  if(circ.resting){ circ.resting=false; circ.startAt=Date.now(); circ.round--; circ.idx=circ.items.length-1; drawCircuit(); return; }
   circ.idx--; if(circ.idx<0){ if(circ.round>1){ circ.round--; circ.idx=circ.items.length-1; } else circ.idx=0; }
   drawCircuit();
 }
@@ -914,9 +944,10 @@ function stopBig(){ clearInterval(big.int); big.running=false; big.started=false
 /* ===================== Rest ===================== */
 let rest = {int:null, left:0};
 const restbar=document.getElementById('restbar'), restnum=document.getElementById('restnum');
-function startRest(s){ clearInterval(rest.int); rest.left=s; restbar.classList.add('show'); restnum.textContent=fmt(rest.left);
-  rest.int=setInterval(()=>{ rest.left--; restnum.textContent=fmt(rest.left); if(rest.left>0 && rest.left<=5) tickBeep(); if(rest.left<=0){ clearInterval(rest.int); beep(2); setTimeout(()=>restbar.classList.remove('show'),1200); } },1000); }
-document.getElementById('restplus').onclick=()=>{ rest.left+=30; restnum.textContent=fmt(rest.left); };
+function startRest(s){ clearInterval(rest.int); rest.left=s; rest.end=Date.now()+s*1000; restbar.classList.add('show'); restnum.textContent=fmt(rest.left);
+  rest.tick=()=>{ const nl=Math.max(0,Math.ceil((rest.end-Date.now())/1000)); if(nl===rest.left) return; const prev=rest.left; rest.left=nl; restnum.textContent=fmt(nl); if(prev-nl===1 && nl>0 && nl<=5) tickBeep(); if(nl<=0){ clearInterval(rest.int); rest.tick=null; beep(2); setTimeout(()=>restbar.classList.remove('show'),1200); } };
+  rest.int=setInterval(rest.tick,400); }
+document.getElementById('restplus').onclick=()=>{ rest.left+=30; rest.end=(rest.end||Date.now())+30000; restnum.textContent=fmt(rest.left); };
 document.getElementById('reststop').onclick=()=>{ clearInterval(rest.int); restbar.classList.remove('show'); };
 function tickBeep(){ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const o=actx.createOscillator(), g=actx.createGain(); o.frequency.value=660; o.connect(g); g.connect(actx.destination); const t=actx.currentTime; g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.12); o.start(t); o.stop(t+0.12); }catch(e){} }
 let actx=null;
@@ -1008,8 +1039,9 @@ function renderProgram(){
   <li>Upper body and core give a balanced silhouette and a posture that shows everything off.</li>
   <li>Without enough protein and sleep, sessions build very little. See Nutrition.</li></ul></div>`;
   html += `<div class="card"><h3>Progression rules</h3><ul class="plain">
-  <li>Finish every set with 1 or 2 reps in the tank for 2 sessions in a row → move to the next phase's prescription for that exercise, even early.</li>
-  <li>Gym: a load that leaves 2 reps in the tank on the last set. All reps completed two sessions in a row → +2.5 kg (upper body, hip thrust +5 kg). Log the load under the exercise; the app reminds you next time.</li>
+  <li><b>Automatic progression.</b> After each session, your Easy / Ok / Hard answer changes the next prescription: Easy adds 2 reps per set (10 s on holds, 10 m on carries), Hard removes them, Ok changes nothing. At the gym the load moves instead: +2.5 kg upper body, +5 kg lower body, pre-filled in the Load field. Up to 3 steps (+6 reps) per phase; beyond that the app tells you to move to the harder variation. A new phase resets the counter, since the base prescription already goes up.</li>
+  <li>You can always correct by hand: the load in the field, or tap Hard to step back down.</li>
+  <li>Gym: aim for a load that leaves 2 reps in the tank on the last set. Log it under the exercise: the app remembers it and raises it on its own when you say Easy.</li>
   <li>Gym, week 1: learn the hip thrust and Romanian deadlift with the empty bar. Load comes fast, technique doesn't.</li>
   <li>After 12 weeks: start the next cycle. It restarts in phase 2, adds a set per exercise at home, and at the gym progress simply continues through the load. Plan on 3 cycles (9 months) for a full physique change.</li>
   <li>A rep breaks down (rounded back, knee caving in) → stop the set.</li>
@@ -1069,7 +1101,7 @@ function renderProgress(){
   };
   app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ state.tests.splice(+b.dataset.del,1); persist(); renderProgress(); });
   const eb=document.getElementById('exportBtn'); if(eb) eb.onclick=async()=>{ const txt=JSON.stringify(state); try{ await navigator.clipboard.writeText(txt); toast('Data copied to the clipboard'); }catch(e){ prompt('Copy my data', txt); } };
-  const ib=document.getElementById('importBtn'); if(ib) ib.onclick=()=>{ const txt=prompt('Paste here the data copied from the other version of the app:'); if(!txt) return; try{ const d=JSON.parse(txt); if(!d||typeof d!=='object'||!Array.isArray(d.sessions)) throw 0; const keys={}; (state.sessions||[]).forEach(s=>keys[s.key]=1); d.sessions.forEach(s=>{ if(!keys[s.key]) state.sessions.push(s); }); state.tests=[...(state.tests||[]),...(d.tests||[]).filter(t=>!(state.tests||[]).some(x=>x.week===t.week&&x.date===t.date))].sort((a,b)=>a.week-b.week); state.loads=Object.assign({},d.loads||{},state.loads||{}); state.loadLog=Object.assign({},d.loadLog||{},state.loadLog||{}); state.fbs=Object.assign({},d.fbs||{},state.fbs||{}); state.lastRpe=Object.assign({},d.lastRpe||{},state.lastRpe||{}); state.checks=Object.assign({},d.checks||{},state.checks||{}); if(d.start && d.start!==state.start){ if(!state.start || confirm('The imported data has a different start date. Use '+d.start+' ?')) state.start=d.start; } if(d.cycle) state.cycle=Math.max(state.cycle||1,d.cycle); persist(); toast('Data imported'); render(); }catch(e){ toast('Unreadable data'); } };
+  const ib=document.getElementById('importBtn'); if(ib) ib.onclick=()=>{ const txt=prompt('Paste here the data copied from the other version of the app:'); if(!txt) return; try{ const d=JSON.parse(txt); if(!d||typeof d!=='object'||!Array.isArray(d.sessions)) throw 0; const keys={}; (state.sessions||[]).forEach(s=>keys[s.key]=1); d.sessions.forEach(s=>{ if(!keys[s.key]) state.sessions.push(s); }); state.tests=[...(state.tests||[]),...(d.tests||[]).filter(t=>!(state.tests||[]).some(x=>x.week===t.week&&x.date===t.date))].sort((a,b)=>a.week-b.week); state.loads=Object.assign({},d.loads||{},state.loads||{}); state.loadLog=Object.assign({},d.loadLog||{},state.loadLog||{}); state.fbs=Object.assign({},d.fbs||{},state.fbs||{}); state.lastRpe=Object.assign({},d.lastRpe||{},state.lastRpe||{}); state.adj=Object.assign({},d.adj||{},state.adj||{}); state.checks=Object.assign({},d.checks||{},state.checks||{}); if(d.start && d.start!==state.start){ if(!state.start || confirm('The imported data has a different start date. Use '+d.start+' ?')) state.start=d.start; } if(d.cycle) state.cycle=Math.max(state.cycle||1,d.cycle); persist(); toast('Data imported'); render(); }catch(e){ toast('Unreadable data'); } };
   const si=document.getElementById('startIn'); if(si) si.onchange=e=>{ if(e.target.value){ state.start=iso(mondayOf(new Date(e.target.value+'T00:00:00'))); persist(); render(); } };
   document.getElementById('resetAll').onclick=()=>{ if(confirm('Erase all history and start over?')){ state={start:null, weight:state.weight, checks:{}, sessions:[], tests:[], amrapRounds:{}, images:state.images||{}, place:state.place, loads:state.loads||{}, cycle:1}; persist(); render(); } };
 }
@@ -1138,6 +1170,10 @@ function renderFood(){
 
 /* ===================== Hors ligne ===================== */
 try{ if('serviceWorker' in navigator && location.protocol==='https:' && !/claude\.ai$|claudeusercontent|anthropic/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){}
+
+/* ===================== Rattrapage au retour dans l'app ===================== */
+function catchUp(){ try{ if(guided.tick) guided.tick(); if(guided.work&&guided.work.tick) guided.work.tick(); if(guided.iv&&guided.iv.tick) guided.iv.tick(); if(typeof run!=='undefined' && run.tick) run.tick(); if(circ.tick) circ.tick(); if(rest.tick) rest.tick(); }catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) catchUp(); }); window.addEventListener('focus',catchUp); window.addEventListener('pageshow',catchUp);
 
 /* ===================== Divers ===================== */
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
