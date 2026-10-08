@@ -581,17 +581,11 @@ function renderToday(){
   }
   if(day.kind==='amrap'){
     const mins = expressOn()?Math.min(day.minutes[ph],15):day.minutes[ph];
-    html += `<div class="card"><h3>AMRAP ${mins} min</h3><ol class="plain">${day.rounds[ph].map((x,i)=>itemHtml(x, day.rk[ph][i])).join('')}</ol><p class="note">${esc(day.note)}</p><hr>
-    <div class="timer" id="bigTimer">${mins}:00</div>
-    <div class="row" style="justify-content:center"><button class="btn" id="tStart" data-secs="${mins*60}">Go · guided circuit</button><button class="btn ghost" id="tPause">Pause</button><button class="btn ghost" id="tReset">Reset</button></div>
-    <hr><div class="row" style="justify-content:space-between"><div><div class="note">Rounds</div><div class="roundsbig" id="roundsNum">0</div></div><div class="row"><button class="btn ghost small" id="rMinus" aria-label="Remove a round counted by mistake">−1 round</button><button class="btn small" id="rPlus">+1 round</button></div></div></div>`;
+    html += `<div class="card"><h3>AMRAP ${mins} min</h3><ol class="plain">${day.rounds[ph].map((x,i)=>itemHtml(x, day.rk[ph][i])).join('')}</ol><p class="note">${esc(day.note)}</p><hr>${circuitCtl(day, ph, mins*60)}</div>`;
   }
   if(day.kind==='rounds'){
     const r0 = (gymOn() && day.groundsG) ? day.groundsG[ph] : day.rounds[ph]; const r = expressOn()? Object.assign({}, r0, {r:Math.min(r0.r,3)}) : r0; const capShow = expressOn()?Math.min(day.cap[ph],17):day.cap[ph];
-    html += `<div class="card"><h3>${r.r} rounds · ${capShow} min cap</h3><p class="note">The cap is a limit, not a target: at the beep, stop where you are and note your rounds. Better 18 clean minutes than 24 dragging ones.</p><ol class="plain">${r.list.map((x,i)=>itemHtml(x, r.k[i])).join('')}</ol><hr>
-    <div class="timer" id="bigTimer">0:00</div>
-    <div class="row" style="justify-content:center"><button class="btn" id="tStart" data-secs="0">Go · guided circuit</button><button class="btn ghost" id="tPause">Pause</button><button class="btn ghost" id="tReset">Reset</button></div>
-    <hr><div class="row" style="justify-content:space-between"><div><div class="note">Rounds done</div><div class="roundsbig" id="roundsNum">0</div></div><div class="row"><button class="btn ghost small" id="rMinus" aria-label="Remove a round counted by mistake">−1 round</button><button class="btn small" id="rPlus">+1 round</button></div></div></div>`;
+    html += `<div class="card"><h3>${r.r} rounds · ${capShow} min cap</h3><p class="note">The cap is a limit, not a target: at the beep, stop where you are and note your rounds. Better 18 clean minutes than 24 dragging ones.</p><ol class="plain">${r.list.map((x,i)=>itemHtml(x, r.k[i])).join('')}</ol><hr>${circuitCtl(day, ph, 0)}</div>`;
   }
   if(day.kind==='rest'){
     html += `<div class="card"><ul class="plain">${day.list.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
@@ -838,14 +832,14 @@ document.getElementById('gfVoice').onclick=()=>{ state.voice = state.voice===fal
 /* ===================== Circuit guidé (AMRAP / metcon) ===================== */
 let circ={active:false, kind:'', items:[], keys:[], idx:0, round:1, rounds:0, secs:0, left:0, elapsed:0, int:null, resting:false, restLeft:0, day:null, ph:0, w:0, cap:0};
 function parseItem(txt){ const m=/^(\d+(?:[.,]\d+)?)\s*(m|s|min)?\b\s*(?:de |of )?(.*)$/.exec(txt.trim()); if(!m) return {num:'', unit:'', name:txt}; return {num:m[1], unit:m[2]||'', name:m[3]}; }
-function startCircuit(day, ph, w){
+function startCircuit(day, ph, w, opts){ const o=opts||{};
   let items, keys, rounds, secs=0, cap=0;
   if(day.kind==='amrap'){ items=day.rounds[ph]; keys=day.rk[ph]; rounds=Infinity; secs=(expressOn()?Math.min(day.minutes[ph],15):day.minutes[ph])*60; }
   else { const r0=(gymOn()&&day.groundsG)?day.groundsG[ph]:day.rounds[ph]; items=r0.list; keys=r0.k||[]; rounds=expressOn()?Math.min(r0.r,3):r0.r; cap=(expressOn()?Math.min(day.cap[ph],17):day.cap[ph])*60; }
-  circ={active:true, kind:day.kind, items, keys, idx:0, round:1, rounds, secs, left:secs, elapsed:0, int:null, resting:false, restLeft:0, day, ph, w, cap};
+  const startRound=Math.max(1,Math.min(o.round||1, isFinite(rounds)?rounds:1e9)); const startEl=Math.max(0,o.elapsed||0); circ={active:true, kind:day.kind, items, keys, idx:0, round:startRound, rounds, secs, left:Math.max(0,secs-startEl), elapsed:startEl, int:null, resting:false, restLeft:0, day, ph, w, cap};
   guided.scrollY=window.scrollY; document.body.classList.add('locked'); document.body.style.top=(-guided.scrollY)+'px'; document.getElementById('gf').classList.add('show');
   try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(l=>guided.wake=l).catch(()=>{}); }catch(e){}
-  circ.startAt=Date.now(); circ.acc=0; circ.capWarned=false;
+  circ.startAt=Date.now(); circ.acc=startEl; circ.capWarned=!!(cap && startEl>=cap);
   circ.tick=()=>{ if(!circ.active) return;
     if(circ.resting){ const nl=Math.max(0,Math.ceil((circ.restEnd-Date.now())/1000)); if(nl!==circ.restLeft){ const prev=circ.restLeft; circ.restLeft=nl; if(prev-nl===1) countdownCue(nl); const el=document.getElementById('cRest'); if(el) el.textContent=fmt(nl); if(nl<=0){ circ.resting=false; circ.startAt=Date.now(); beep(1); say('Go'); drawCircuit(); } } return; }
     const el=circ.acc+Math.floor((Date.now()-circ.startAt)/1000); if(el===circ.elapsed) return; const prev=circ.elapsed; circ.elapsed=el;
@@ -897,7 +891,7 @@ function circPrev(){
 function finishCircuit(complete){
   clearInterval(circ.int); circ.active=false;
   const doneRounds = complete && isFinite(circ.rounds) ? circ.rounds : (circ.round-1);
-  big.started=true; big.rounds=doneRounds; big.elapsed=circ.elapsed; big.secs=circ.secs; big.remaining=circ.left; big.countdown=(circ.kind==='amrap');
+  big.started=true; big.rounds=doneRounds; big.elapsed=circ.elapsed; big.secs=circ.secs; big.remaining=circ.left; big.countdown=(circ.kind==='amrap'); big.complete=!!complete;
   if(complete) { beep(3); say(circ.kind==='amrap'?'Time is up':'Done'); }
   closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} }
   renderToday(); toast(doneRounds+' rounds · '+(circ.kind==='amrap'?fmt(circ.secs-circ.left):fmt(circ.elapsed)));
@@ -907,22 +901,31 @@ function finishCircuit(complete){
 let big = {int:null, remaining:0, elapsed:0, countdown:true, rounds:0, running:false, started:false, secs:0, day:null, ph:0, wake:null};
 function fmt(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
 const focusEl=document.getElementById('focus');
+function circuitCtl(day, ph, secs){
+  if(!big.started) return `<div class="row" style="margin-top:4px"><button class="btn" id="tStart" data-secs="${secs}" style="flex:1;min-height:54px;font-size:18px">Go · guided circuit</button></div>`;
+  const total = day.kind==="rounds" ? (expressOn()?Math.min(((gymOn()&&day.groundsG)?day.groundsG[ph]:day.rounds[ph]).r,3):((gymOn()&&day.groundsG)?day.groundsG[ph]:day.rounds[ph]).r) : 0;
+  const canResume = !big.complete && (day.kind==="amrap" ? big.remaining>0 : big.rounds<total);
+  const timeTxt = day.kind==="amrap" ? fmt(big.secs-big.remaining) : fmt(big.elapsed);
+  return `<div class="lbl" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:700">Result</div>
+  <div class="row" style="justify-content:space-between;align-items:flex-end;margin-top:6px"><div><div class="note">Rounds${total?" / "+total:""}</div><div class="roundsbig" id="roundsNum">${big.rounds}</div></div><div><div class="note">Time</div><div class="roundsbig" id="bigTimer">${timeTxt}</div></div><div class="row"><button class="btn ghost small" id="rMinus" aria-label="Remove a round counted by mistake">−1 round</button><button class="btn ghost small" id="rPlus">+1 round</button></div></div>
+  <p class="note" style="margin:8px 0 10px">Fix the round count if needed, then save the session below.</p>
+  <div class="row">${canResume?`<button class="btn" id="tStart" data-secs="${secs}" data-resume="1" style="flex:1">Resume · round ${big.rounds+1}</button>`:""}<button class="btn ghost" id="tReset">Start over</button></div>`;
+}
 function bindBig(){
-  const st=document.getElementById('tStart'); if(!st) return;
-  const secs=+st.dataset.secs; big.countdown = secs>0; big.secs=secs;
+  const st=document.getElementById('tStart'); const rs=document.getElementById('tReset'); if(!st && !rs) return;
+  const secs=st?+st.dataset.secs:big.secs; big.countdown = secs>0; big.secs=secs;
   if(!big.started){ big.remaining=secs; big.elapsed=0; }
   drawBig();
-  st.onclick=()=>{ showPrep(big.day, big.ph, currentWeek(), ()=>startCircuit(big.day, big.ph, currentWeek())); };
-  document.getElementById('tPause').onclick=pauseBig;
-  document.getElementById('tReset').onclick=resetBig;
-  document.getElementById('rPlus').onclick=()=>{ big.rounds++; drawBig(); };
-  document.getElementById('rMinus').onclick=()=>{ big.rounds=Math.max(0,big.rounds-1); drawBig(); };
+  if(st) st.onclick=()=>{ const resume=!!st.dataset.resume; const w=currentWeek(); if(resume) startCircuit(big.day, big.ph, w, {round:big.rounds+1, elapsed:big.elapsed}); else showPrep(big.day, big.ph, w, ()=>startCircuit(big.day, big.ph, w)); };
+  if(rs) rs.onclick=()=>{ if(confirm('Restart the circuit from scratch? The current result will be erased.')){ resetBig(); big.complete=false; renderToday(); } };
+  const rp=document.getElementById('rPlus'); if(rp) rp.onclick=()=>{ big.rounds++; drawBig(); };
+  const rm=document.getElementById('rMinus'); if(rm) rm.onclick=()=>{ big.rounds=Math.max(0,big.rounds-1); drawBig(); };
 }
 function tick(){ if(big.running) return; big.running=true; big.started=true; big.int=setInterval(()=>{ if(big.countdown){ big.remaining--; if(big.remaining>0 && big.remaining<=5) tickBeep(); if(big.remaining<=0){ clearInterval(big.int); big.running=false; big.remaining=0; beep(3); } } else big.elapsed++; drawBig(); },1000); drawBig(); }
 function pauseBig(){ clearInterval(big.int); big.running=false; drawBig(); }
 function resetBig(){ clearInterval(big.int); big.running=false; big.started=false; big.remaining=big.secs; big.elapsed=0; big.rounds=0; drawBig(); }
 function drawBig(){ const v=big.countdown? fmt(big.remaining) : fmt(big.elapsed); const capS = (!big.countdown && big.day && big.day.cap) ? (expressOn()?Math.min(big.day.cap[big.ph],17):big.day.cap[big.ph])*60 : 0; const over = capS>0 && big.elapsed>=capS; if(over && !big.overBeeped){ big.overBeeped=true; beep(3); } if(!over) big.overBeeped=false;
-  const t=document.getElementById('bigTimer'); if(t){ t.textContent=v; t.classList.toggle('over',over); } const r=document.getElementById('roundsNum'); if(r) r.textContent=big.rounds;
+  const t=document.getElementById('bigTimer'); if(t){ t.textContent=big.countdown?fmt(big.secs-big.remaining):v; t.classList.toggle('over',over); } const r=document.getElementById('roundsNum'); if(r) r.textContent=big.rounds;
   const ft=document.getElementById('fTimer'); ft.textContent=v; ft.classList.toggle('paused', big.started && !big.running); ft.classList.toggle('over',over); document.getElementById('fRounds').textContent=big.rounds;
   document.getElementById('fPause').textContent = big.running?'Pause':(big.started?'Resume':'Start'); }
 function openFocus(){
@@ -939,7 +942,7 @@ document.getElementById('fPause').onclick=()=>{ if(big.running) pauseBig(); else
 document.getElementById('fPlus').onclick=()=>{ big.rounds++; drawBig(); };
 document.getElementById('fMinus').onclick=()=>{ big.rounds=Math.max(0,big.rounds-1); drawBig(); };
 document.getElementById('fQuit').onclick=()=>{ pauseBig(); closeFocus(); renderToday(); toast(big.rounds+' rounds · '+(big.countdown?fmt(big.secs-big.remaining):fmt(big.elapsed))); };
-function stopBig(){ clearInterval(big.int); big.running=false; big.started=false; big.rounds=0; closeFocus(); }
+function stopBig(){ clearInterval(big.int); big.running=false; big.started=false; big.complete=false; big.rounds=0; closeFocus(); }
 
 /* ===================== Rest ===================== */
 let rest = {int:null, left:0};
