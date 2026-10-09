@@ -230,6 +230,10 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .gf .circlist li.cur{color:var(--ink);font-weight:800;font-size:17px}
 .gf .circlist li.done{opacity:.45;text-decoration:line-through}
 #gfElapsed.over{color:var(--warn)}
+.gf .circtime{display:flex;align-items:baseline;justify-content:center;gap:10px;margin:-2px 0 12px}
+.gf .circtime b{font-variation-settings:"wdth" 70;font-weight:900;font-size:46px;font-variant-numeric:tabular-nums;line-height:1}
+.gf .circtime b.over{color:var(--warn)}
+.gf .circtime span{font-size:12px;color:var(--ink-2);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .reco{font-size:12.5px;margin-top:4px;font-weight:600;color:var(--ink-2)}
 .reco.up{color:var(--ok)}.reco.dn{color:var(--warn)}
 .recap .ex{grid-template-columns:28px 1fr 0}
@@ -585,7 +589,7 @@ function renderToday(){
   }
   if(day.kind==='rounds'){
     const r0 = (gymOn() && day.groundsG) ? day.groundsG[ph] : day.rounds[ph]; const r = expressOn()? Object.assign({}, r0, {r:Math.min(r0.r,3)}) : r0; const capShow = expressOn()?Math.min(day.cap[ph],17):day.cap[ph];
-    html += `<div class="card"><h3>${r.r} rounds · ${capShow} min cap</h3><p class="note">The cap is a limit, not a target: at the beep, stop where you are and note your rounds. Better 18 clean minutes than 24 dragging ones.</p><ol class="plain">${r.list.map((x,i)=>itemHtml(x, r.k[i])).join('')}</ol><hr>${circuitCtl(day, ph, 0)}</div>`;
+    html += `<div class="card"><h3>${r.r} rounds for time · ${capShow} min cap</h3><p class="note"><b>How it works:</b> the ${r.list.length} exercises in order = 1 round. Do ${r.r} rounds as fast as you can${ph===0?', with 2 min rest between rounds (the app counts it down)':', no rest between rounds'}. The clock stops at the end of round ${r.r}: that is your score, to beat next time.<br><b>The ${capShow} min cap</b> is a safety ceiling, not a target: if the beep sounds first, finish the round you are on, stop, and note how many rounds you did. Fast but clean: a sloppy rep does not count.</p><ol class="plain">${r.list.map((x,i)=>itemHtml(x, r.k[i])).join('')}</ol><hr>${circuitCtl(day, ph, 0)}</div>`;
   }
   if(day.kind==='rest'){
     html += `<div class="card"><ul class="plain">${day.list.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
@@ -831,7 +835,7 @@ document.getElementById('gfVoice').onclick=()=>{ state.voice = state.voice===fal
 
 /* ===================== Circuit guidé (AMRAP / metcon) ===================== */
 let circ={active:false, kind:'', items:[], keys:[], idx:0, round:1, rounds:0, secs:0, left:0, elapsed:0, int:null, resting:false, restLeft:0, day:null, ph:0, w:0, cap:0};
-function parseItem(txt){ const m=/^(\d+(?:[.,]\d+)?)\s*(m|s|min)?\b\s*(?:de |of )?(.*)$/.exec(txt.trim()); if(!m) return {num:'', unit:'', name:txt}; return {num:m[1], unit:m[2]||'', name:m[3]}; }
+function parseItem(txt){ const m=/^(\d+(?:[.,]\d+)?)\s*(m|s|min)?\b\s*(?:de |d['’]|of )?(.*)$/.exec(txt.trim()); if(!m) return {num:'', unit:'', name:txt}; return {num:m[1], unit:m[2]||'', name:m[3]}; }
 function startCircuit(day, ph, w, opts){ const o=opts||{};
   let items, keys, rounds, secs=0, cap=0;
   if(day.kind==='amrap'){ items=day.rounds[ph]; keys=day.rk[ph]; rounds=Infinity; secs=(expressOn()?Math.min(day.minutes[ph],15):day.minutes[ph])*60; }
@@ -842,12 +846,17 @@ function startCircuit(day, ph, w, opts){ const o=opts||{};
   circ.startAt=Date.now(); circ.acc=startEl; circ.capWarned=!!(cap && startEl>=cap);
   circ.tick=()=>{ if(!circ.active) return;
     if(circ.resting){ const nl=Math.max(0,Math.ceil((circ.restEnd-Date.now())/1000)); if(nl!==circ.restLeft){ const prev=circ.restLeft; circ.restLeft=nl; if(prev-nl===1) countdownCue(nl); const el=document.getElementById('cRest'); if(el) el.textContent=fmt(nl); if(nl<=0){ circ.resting=false; circ.startAt=Date.now(); beep(1); say('Go'); drawCircuit(); } } return; }
+    if(circ.item && circ.item.running){ const nl=Math.max(0,Math.ceil((circ.item.end-Date.now())/1000)); if(nl!==circ.item.left){ const pv=circ.item.left; circ.item.left=nl; if(pv-nl===1) countdownCue(nl); const cw=document.getElementById('cWork'); if(cw) cw.textContent=fmt(nl); if(nl<=0){ circ.item.running=false; beep(2); circNext(); return; } } }
     const el=circ.acc+Math.floor((Date.now()-circ.startAt)/1000); if(el===circ.elapsed) return; const prev=circ.elapsed; circ.elapsed=el;
     if(circ.kind==='amrap'){ circ.left=Math.max(0,circ.secs-el); if(el-prev===1 && circ.left>0 && circ.left<=5) tickBeep(); if(circ.left<=0){ finishCircuit(true); return; } } else if(circ.cap && !circ.capWarned && el>=circ.cap){ circ.capWarned=true; beep(3); say('Cap reached, finish your round'); }
+    if(Math.floor(el/60)>Math.floor(prev/60) && el>0 && !(circ.kind==='amrap' && circ.left<=0)) circMinuteCue();
+    const cm=document.getElementById('cMain'); if(cm){ cm.textContent = circ.kind==='amrap'? fmt(circ.left) : fmt(circ.elapsed); cm.classList.toggle('over', !!circ.cap && circ.elapsed>=circ.cap); }
     const t=document.getElementById('gfElapsed'); if(t){ t.textContent = `Round ${circ.round}${isFinite(circ.rounds)?'/'+circ.rounds:''} · ${circ.kind==='amrap'? fmt(circ.left) : fmt(circ.elapsed)}`; t.classList.toggle('over', !!circ.cap && circ.elapsed>=circ.cap); } };
   circ.int=setInterval(circ.tick,400);
   drawCircuit(); say('Go');
 }
+function circTimeHtml(){ const over=!!circ.cap && circ.elapsed>=circ.cap; return `<div class="circtime"><b id="cMain" class="${over?'over':''}">${circ.kind==='amrap'? fmt(circ.left) : fmt(circ.elapsed)}</b><span>${circ.kind==='amrap'?'left':'elapsed'} · round ${circ.round}${isFinite(circ.rounds)?'/'+circ.rounds:''}</span></div>`; }
+function circMinuteCue(){ if(circ.kind==='amrap'){ const m=Math.round(circ.left/60); if(m<=0) return; if(state.voice!==false) say(`${m} minute${m>1?'s':''} left`); else { tickBeep(); setTimeout(tickBeep,180); } } else { const m=Math.round(circ.elapsed/60); if(state.voice!==false) say(`${m} minute${m>1?'s':''}`); else { tickBeep(); setTimeout(tickBeep,180); } } }
 function drawCircuit(){
   if(!circ.active) return; const gf=document.getElementById('gf'); gf.classList.toggle('rest', circ.resting);
   const it=parseItem(circ.items[circ.idx]); const k=circ.keys[circ.idx];
@@ -858,22 +867,25 @@ function drawCircuit(){
   const thumb=k=>{ if(!k) return ''; if(vidSrc(k)) return vidTag(k,'gvid'); const s=imgSrc(k); return s?`<img class="thumb" src="${s}" alt="" data-view="${k}" onerror="this.remove()">`:''; };
   let body='', actions='';
   if(circ.resting){
-    body=`<div class="lbl">Rest between rounds</div><div class="count" id="cRest">${fmt(circ.restLeft)}</div><div class="donecard"><div class="lbl ok big">Round done ${circ.round-1}${isFinite(circ.rounds)?'/'+circ.rounds:''}</div></div><div class="nextcard"><div class="lbl accent big">Round ${circ.round}</div><div class="exname">${esc(circ.items[0])}</div></div>`;
+    body=circTimeHtml()+`<div class="lbl">Rest between rounds</div><div class="count" id="cRest">${fmt(circ.restLeft)}</div><div class="donecard"><div class="lbl ok big">Round done ${circ.round-1}${isFinite(circ.rounds)?'/'+circ.rounds:''}</div></div><div class="nextcard"><div class="lbl accent big">Round ${circ.round}</div><div class="exname">${esc(circ.items[0])}</div></div>`;
     actions=`<button class="btn" id="cNext">Skip rest</button><div class="small-row"><button class="btn ghost" id="cPrev">Back</button><button class="btn ghost" id="cFinish">Finish</button><button class="btn ghost" id="cQuit">Quit</button></div>`;
   } else {
-    body=`<div class="lbl">${isFinite(circ.rounds)?'':'AMRAP'}</div><div class="count">${esc(it.num)}${it.unit?`<span style="font-size:.4em;opacity:.6"> ${esc(it.unit)}</span>`:''}</div><div class="exname">${esc(it.name)}</div>${k&&CUES[k]?`<div class="cue">${esc(CUES[k])}</div>`:''}${thumb(k)}
+    const isecs = it.unit==='s'? +it.num : (it.unit==='min'? +it.num*60 : 0); const tRun = !!(circ.item && circ.item.running && circ.item.idx===circ.idx && circ.item.round===circ.round);
+    body=circTimeHtml()+`<div class="lbl">${isecs?(tRun?'timer':'timer · start when ready'):(isFinite(circ.rounds)?'':'AMRAP')}</div><div class="count" id="cWork">${isecs?fmt(tRun?circ.item.left:isecs):esc(it.num)}${(!isecs&&it.unit)?`<span style="font-size:.4em;opacity:.6"> ${esc(it.unit)}</span>`:''}</div><div class="exname">${esc(it.name)}</div>${k&&CUES[k]?`<div class="cue">${esc(CUES[k])}</div>`:''}${thumb(k)}
       <div class="lbl" style="margin-top:18px">Circuit:</div><ol class="circlist">${circ.items.map((x,i)=>`<li class="${i===circ.idx?'cur':(i<circ.idx?'done':'')}">${esc(x)}</li>`).join('')}</ol>
-      <div class="note" style="margin-top:16px">${circ.kind==='amrap'?'Goal: as many rounds as possible, at a steady pace. No sprinting, clean technique.':`Goal: ${circ.rounds} rounds as fast as possible, clean technique. Cap ${fmt(circ.cap)}.`}</div>`;
-    actions=`<button class="btn" id="cNext">${circ.idx===circ.items.length-1?'Next · Round '+(circ.round+1):'Next'}</button><div class="small-row"><button class="btn ghost" id="cPrev" ${(circ.idx===0&&circ.round===1)?'disabled':''}>Back</button><button class="btn ghost" id="cFinish">Finish</button><button class="btn ghost" id="cQuit">Quit</button></div>`;
+      <div class="note" style="margin-top:16px">${circ.kind==='amrap'?'Goal: as many rounds as possible, at a steady pace. No sprinting, clean technique.':`Goal: ${circ.rounds} rounds as fast as possible, clean technique. At the cap (${fmt(circ.cap)}): finish the round you are on, then stop.`}</div>`;
+    actions=(isecs?`<button class="btn" id="cTimer" data-secs="${isecs}" ${tRun?'disabled':''}>${tRun?'Running…':'Start · '+fmt(isecs)}</button>`:'')+`<button class="btn ${isecs?'ghost':''}" id="cNext">${circ.idx===circ.items.length-1?'Next · Round '+(circ.round+1):'Next'}</button><div class="small-row"><button class="btn ghost" id="cPrev" ${(circ.idx===0&&circ.round===1)?'disabled':''}>Back</button><button class="btn ghost" id="cFinish">Finish</button><button class="btn ghost" id="cQuit">Quit</button></div>`;
   }
   document.getElementById('gfBody').innerHTML=body; document.getElementById('gfActions').innerHTML=actions; document.getElementById('gfBody').scrollTop=0;
   const n=document.getElementById('cNext'); if(n) n.onclick=circNext;
+  const ct=document.getElementById('cTimer'); if(ct) ct.onclick=()=>{ circ.item={running:true, end:Date.now()+(+ct.dataset.secs)*1000, left:+ct.dataset.secs, idx:circ.idx, round:circ.round}; say('Go'); ct.disabled=true; ct.textContent='Running…'; };
   const p=document.getElementById('cPrev'); if(p) p.onclick=circPrev;
   const fb=document.getElementById('cFinish'); if(fb) fb.onclick=()=>finishCircuit(false);
   const q=document.getElementById('cQuit'); if(q) q.onclick=()=>{ if(confirm('Quit the circuit? Completed rounds will be offered for saving.')) finishCircuit(false); };
   bindImages(gf);
 }
 function circNext(){
+  if(circ.item) circ.item.running=false;
   if(circ.resting){ circ.resting=false; circ.startAt=Date.now(); drawCircuit(); return; }
   circ.idx++;
   if(circ.idx>=circ.items.length){ circ.idx=0; circ.round++; beep(2);
@@ -884,6 +896,7 @@ function circNext(){
   drawCircuit();
 }
 function circPrev(){
+  if(circ.item) circ.item.running=false;
   if(circ.resting){ circ.resting=false; circ.startAt=Date.now(); circ.round--; circ.idx=circ.items.length-1; drawCircuit(); return; }
   circ.idx--; if(circ.idx<0){ if(circ.round>1){ circ.round--; circ.idx=circ.items.length-1; } else circ.idx=0; }
   drawCircuit();
