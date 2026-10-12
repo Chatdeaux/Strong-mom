@@ -236,6 +236,9 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .gf .circlist li.cur{color:var(--ink);font-weight:800;font-size:17px}
 .gf .circlist li.done{opacity:.45;text-decoration:line-through}
 #gfElapsed.over{color:var(--warn)}
+#hiitf.on{background:#7A1E14;color:#fff}#hiitf.on .meta,#hiitf.on .lbl,#hiitf.on .note{color:rgba(255,255,255,.75)}#hiitf.on .frounds{background:rgba(255,255,255,.1);border-color:transparent}#hiitf.on .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
+#hiitf.off{background:#123D2B;color:#fff}#hiitf.off .meta,#hiitf.off .lbl,#hiitf.off .note{color:rgba(255,255,255,.75)}#hiitf.off .frounds{background:rgba(255,255,255,.1);border-color:transparent}#hiitf.off .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
+.actchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.actchips .chip{padding:10px 14px}
 .gf .circtime{display:flex;align-items:baseline;justify-content:center;gap:10px;margin:-2px 0 12px}
 .gf .circtime b{font-variation-settings:"wdth" 70;font-weight:900;font-size:46px;font-variant-numeric:tabular-nums;line-height:1}
 .gf .circtime b.over{color:var(--warn)}
@@ -292,6 +295,7 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
   <button data-tab="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</button>
   <button data-tab="program"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Program</button>
   <button data-tab="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-7"/></svg>Progress</button>
+  <button data-tab="chrono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6M12 2v3"/></svg>Chrono</button>
   <button data-tab="food"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3v8a3 3 0 0 0 6 0V3M8 3v18M17 3c-2 1-3 4-3 7v11"/></svg>Nutrition</button>
 </nav>
 
@@ -303,6 +307,7 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 <div class="gf" id="gf" role="dialog" aria-modal="true"><div class="gf-top"><span id="gfLeft"></span><span id="gfElapsed">0:00</span><button id="gfVoice" aria-label="Voix">🔊</button></div><div class="progressline" style="margin:0 16px"><i id="gfBar" style="width:0%"></i></div><div class="gf-body" id="gfBody"></div><div class="gf-actions" id="gfActions"></div></div>
 <div class="prep" id="prep" role="dialog" aria-modal="true"><div class="box"><div class="kicker" id="prepKick"></div><h3 id="prepTitle"></h3><div id="prepLines"></div><div class="btns"><button class="btn" id="prepGo">Let's go</button><button class="btn ghost small" id="prepCancel">Not now</button></div></div></div>
 <div class="focus" id="focus" role="dialog" aria-modal="true"><div class="lbl meta" id="fTitle"></div><div class="ftimer" id="fTimer">0:00</div><div class="frounds"><div><div class="meta">Rounds</div><b id="fRounds">0</b></div><div class="row"><button class="btn ghost small" id="fMinus" aria-label="Remove a round">−1</button><button class="btn" id="fPlus">+1 round</button></div></div><ol id="fList"></ol><div class="fbtns"><button class="btn ghost" id="fPause">Pause</button><button class="btn ghost" id="fQuit">Finish</button></div></div>
+<div class="focus" id="hiitf" role="dialog" aria-modal="true"><div class="lbl meta" id="hTitle">Intervals</div><div class="lbl" id="hPhase" style="text-align:center;font-size:14px;letter-spacing:.08em;font-weight:800;margin-top:6px">READY</div><div class="ftimer" id="hTimer">0:30</div><div class="frounds"><div><div class="meta">total</div><b id="hTotal" style="font-size:34px">0:00</b></div><div style="text-align:right"><div class="meta">Round</div><b id="hRound" style="font-size:34px">1</b></div></div><div class="note" id="hInfo" style="text-align:center"></div><div class="fbtns"><button class="btn ghost" id="hPause">Pause</button><button class="btn" id="hStop">Finish</button></div></div>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true"><div><img id="ovImg" alt=""><video id="ovVid" style="display:none;max-width:100%;max-height:70vh;border-radius:12px" controls loop muted playsinline></video><div class="cap" id="ovCap"></div><div class="row"><button id="ovDel">Delete image</button><button id="ovClose">Close</button></div></div></div>
 
 <script>
@@ -546,6 +551,7 @@ function render(){
   if(view.tab==='today') renderToday();
   else if(view.tab==='program') renderProgram();
   else if(view.tab==='progress') renderProgress();
+  else if(view.tab==='chrono') renderChrono();
   else renderFood();
   if(render.keep){ window.scrollTo(0,render.keep); render.keep=null; } else window.scrollTo(0,0);
 }
@@ -733,6 +739,7 @@ function guidedNext(){
     guided.int=setInterval(guided.tick,400);
   }
   drawGuided();
+  if(st.t==='work' && cur && cur.t==='rest'){ const day=DAYS[guided.day]; const b=bx(day.blocks[st.i]); if(!b.iv){ const secs=timedSecs(rxShow(b,phaseOf(guided.week),guided.week,day)); if(secs>0) startWorkTimer(secs); } }
 }
 function guidedPrev(){
   clearGuidedTimers();
@@ -805,7 +812,7 @@ function drawGuided(){
     body=`<div class="lbl">Rest</div><div class="count" id="gCount">${fmt(guided.restLeft)}</div>`;
     if(last){ body+=`<div class="donecard"><div class="lbl ok big">Done ✓</div><div class="exname">${esc(rxShow(b,ph,w,day).split(',')[0])} ${esc(b.n)}</div>${fbButtons(st.i,true)}</div>`; }
     if(last && nb){ body+=`<div class="nextcard"><div class="lbl accent big">Next set</div><div class="exname">${esc(rxShow(nb,ph,w,day).split(',')[0])} ${esc(nb.n)}</div><div class="cue">${esc(nb.cue)}</div>${nb.k?recoFor(nb.k):''}${nb.k?thumb(nb.k):''}${nb.k?`<div class="tools" style="margin-top:10px"><a class="link" href="${ytLink(nb.k)}" target="_blank" rel="noopener">▶ Video</a></div>${howHtml(nb.k)}`:''}</div>`; }
-    else if(!last){ const rxb=rxShow(b,ph,w,day); const rpb=repPart(rxb); body+=`<div class="nextcard"><div class="lbl accent big">Next: set ${st.s+1}/${st.n}</div><div class="exname">${esc(rpb.num)}${rpb.unit?' '+esc(rpb.unit):''} × ${esc(b.n)}</div></div>`; }
+    else if(!last){ const rxb=rxShow(b,ph,w,day); const rpb=repPart(rxb); body+=`<div class="nextcard"><div class="lbl accent big">Next: set ${st.s+1}/${st.n}</div><div class="exname">${esc(rpb.num)}${rpb.unit?' '+esc(rpb.unit):''} × ${esc(b.n)}</div><div class="cue">${esc(b.cue)}</div>${b.k?`<div class="tools" style="margin-top:10px"><a class="link" href="${ytLink(b.k)}" target="_blank" rel="noopener">▶ Video</a></div>${howHtml(b.k)}`:''}</div>`; }
     body+=remainingHtml(day,ph,w);
     actions=`<button class="btn" id="gNext">Skip rest</button><div class="small-row"><button class="btn ghost" id="gPlus">+30 s</button><button class="btn ghost" id="gPrev">Back</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
   }
@@ -1082,7 +1089,7 @@ function renderProgram(){
 function renderProgress(){
   const w=currentWeek();
   const total = state.sessions.length;
-  const thisWeek = state.sessions.filter(s=>s.week===w).length; const NDAYS=DAYS.filter(d=>d.kind!=='rest' && !d.opt).length; const coreWeek=state.sessions.filter(s=>s.week===w && !(DAYS.find(d=>d.id===s.day)||{}).opt).length;
+  const thisWeek = state.sessions.filter(s=>s.week===w).length; const NDAYS=DAYS.filter(d=>d.kind!=='rest' && !d.opt).length; const coreWeek=state.sessions.filter(s=>s.week===w && !s.extra && !(DAYS.find(d=>d.id===s.day)||{}).opt).length;
   const weeksActive = new Set(state.sessions.map(s=>s.week)).size;
   let html = header();
   html += `<h2 class="display session-title">Progress</h2>
@@ -1092,7 +1099,7 @@ function renderProgress(){
   html += `</div></div>`;
 
   // streak of consecutive weeks with >= NDAYS key sessions (ending at last full week)
-  let streak=0; for(let wk=(w>0?w-1:0); wk>=1; wk--){ const n=state.sessions.filter(s=>s.week===wk && !(DAYS.find(d=>d.id===s.day)||{}).opt).length; if(n>=NDAYS) streak++; else break; }
+  let streak=0; for(let wk=(w>0?w-1:0); wk>=1; wk--){ const n=state.sessions.filter(s=>s.week===wk && !s.extra && !(DAYS.find(d=>d.id===s.day)||{}).opt).length; if(n>=NDAYS) streak++; else break; }
   const wkSess=state.sessions.filter(s=>s.week===w); const wkMin=wkSess.reduce((t,s)=>t+(s.dur||0),0); const wkTon=wkSess.reduce((t,s)=>t+((s.score&&DAYS.find(d=>d.id===s.day)&&DAYS.find(d=>d.id===s.day).kind==='sets')?s.score:0),0);
   html += `<div class="card"><h3>This week</h3><div class="kpi"><div><b>${wkSess.length}</b><span>sessions</span></div><div><b>${wkMin}</b><span>min of training</span></div><div><b>${streak}</b><span>weeks in a row (≥ 3 key sessions)</span></div></div></div>`;
   const logKeys=Object.keys(state.loadLog||{}).filter(k=>(state.loadLog[k]||[]).length);
@@ -1199,7 +1206,49 @@ function renderFood(){
 try{ if('serviceWorker' in navigator && location.protocol==='https:' && !/claude\.ai$|claudeusercontent|anthropic/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){}
 
 /* ===================== Rattrapage au retour dans l'app ===================== */
-function catchUp(){ try{ if(guided.tick) guided.tick(); if(guided.work&&guided.work.tick) guided.work.tick(); if(guided.iv&&guided.iv.tick) guided.iv.tick(); if(typeof run!=='undefined' && run.tick) run.tick(); if(circ.tick) circ.tick(); if(rest.tick) rest.tick(); }catch(e){} }
+
+/* ===================== Chrono fractionné ===================== */
+let hiit={running:false, startAt:0, acc:0, elapsed:0, round:180, on:30, off:30, phase:'', phaseLeft:0, roundN:0, int:null, tick:null, wake:null, open:false};
+const HIIT_ACTS=['Bike','Rower','Air bike','Battle ropes','Boxing','Elliptical','Run','Other'];
+function hiitPrefs(){ const p=state.hiit||{}; return {round:Math.max(30,+p.round||180), on:Math.max(5,+p.on||30), off:Math.max(0,+p.off||30)}; }
+function hiitState(e){ const R=hiit.round, on=hiit.on, off=hiit.off, cyc=on+off; const roundN=Math.floor(e/R)+1; const r=e%R; const within=r%cyc; const left=within<on? on-within : cyc-within; const phase=within<on?'on':'off'; return {roundN, phase, phaseLeft:Math.min(left, R-r)}; }
+function hiitDraw(){ const f=document.getElementById('hiitf'); f.classList.toggle('on', hiit.running&&hiit.phase==='on'); f.classList.toggle('off', hiit.running&&hiit.phase==='off'); document.getElementById('hPhase').textContent = hiit.running? (hiit.phase==='on'?'HARD':'EASY') : (hiit.elapsed>0?'PAUSE':'READY'); const t=document.getElementById('hTimer'); t.textContent=fmt(hiit.phaseLeft); t.classList.toggle('paused', !hiit.running && hiit.elapsed>0); document.getElementById('hTotal').textContent=fmt(hiit.elapsed); document.getElementById('hRound').textContent=hiit.roundN; document.getElementById('hInfo').textContent=`${fmt(hiit.round)} · ${hiit.on}/${hiit.off} s`; document.getElementById('hPause').textContent = hiit.running?'Pause':(hiit.elapsed>0?'Resume':'Start'); }
+function hiitStart(){ if(hiit.running) return; hiit.running=true; hiit.startAt=Date.now(); if(hiit.elapsed===0){ say('Go'); beep(1); }
+  hiit.tick=()=>{ if(!hiit.running) return; const e=hiit.acc+Math.floor((Date.now()-hiit.startAt)/1000); if(e===hiit.elapsed) return; const prevE=hiit.elapsed; hiit.elapsed=e; const st=hiitState(e); const prevPhase=hiit.phase, prevRound=hiit.roundN, prevLeft=hiit.phaseLeft; hiit.phase=st.phase; hiit.roundN=st.roundN; hiit.phaseLeft=st.phaseLeft;
+    if(st.roundN!==prevRound && prevRound>0){ beep(3); say('Round '+st.roundN); }
+    else if(st.phase!==prevPhase && prevPhase){ if(st.phase==='on'){ beep(1); say('Go'); } else { beep(2); say('Easy'); } }
+    else if(e-prevE===1 && st.phaseLeft<=3 && st.phaseLeft>0) countdownCue(st.phaseLeft);
+    hiitDraw(); };
+  hiit.int=setInterval(hiit.tick,400); hiitDraw(); }
+function hiitPause(){ if(!hiit.running) return; hiit.running=false; hiit.acc=hiit.elapsed; clearInterval(hiit.int); hiit.tick=null; hiitDraw(); }
+function hiitOpen(){ const p=hiitPrefs(); hiit={running:false, startAt:0, acc:0, elapsed:0, round:p.round, on:p.on, off:p.off, phase:'on', phaseLeft:p.on, roundN:1, int:null, tick:null, wake:null, open:true}; document.getElementById('hiitf').classList.add('show'); try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(l=>hiit.wake=l).catch(()=>{}); }catch(e){} hiitDraw(); hiitStart(); }
+function hiitClose(){ hiitPause(); hiit.open=false; document.getElementById('hiitf').classList.remove('show','on','off'); if(hiit.wake){ try{hiit.wake.release();}catch(e){} hiit.wake=null; } try{ speechSynthesis.cancel(); }catch(e){} }
+document.getElementById('hPause').onclick=()=>{ if(hiit.running) hiitPause(); else hiitStart(); };
+document.getElementById('hStop').onclick=()=>{ hiitPause(); const e=hiit.elapsed; hiitClose(); if(e<30){ view.tab='chrono'; render(); return; } hiit.pending={secs:e, rounds:Math.max(1,Math.ceil(e/hiit.round)), round:hiit.round, on:hiit.on, off:hiit.off}; view.tab='chrono'; beep(3); say('Done'); render(); };
+function renderChrono(){
+  const p=hiitPrefs(); let html=header();
+  html += `<h2 class="display session-title">Intervals</h2><p class="intro">Free cardio timer: 3-min rounds (adjustable) of 30 s hard / 30 s easy, total time counts up, stop whenever you want. At the end, log the activity and your BPM: it is saved with your sessions.</p>`;
+  if(hiit.pending){ const pd=hiit.pending; const act=pd.act||HIIT_ACTS[0];
+    html += `<div class="card"><h3>${fmt(pd.secs)} · ${pd.rounds} ${pd.rounds>1?'rounds':'round'} · ${pd.on}/${pd.off} s</h3><div class="lbl" style="margin-top:8px">What was it?</div><div class="actchips">${HIIT_ACTS.map(x=>`<button class="chip" aria-pressed="${x===act}" data-act="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+      <div class="stack" style="margin-top:14px"><label class="field"><span>Average BPM (watch, optional)</span><input type="number" id="hBpm" inputmode="numeric" placeholder="ex. 150" value="${pd.bpm||''}"></label><label class="field"><span>Note (optional)</span><input type="text" id="hNote" value="${esc(pd.note||'')}"></label>
+      <button class="btn" id="hSave">Save</button><button class="btn ghost small" id="hDiscard">Discard</button></div></div>`;
+  } else {
+    html += `<div class="card"><div class="two"><label class="field"><span>Round (min)</span><input type="number" id="hRoundIn" inputmode="decimal" step="0.5" min="0.5" value="${Math.round(p.round/6)/10}"></label><div class="two"><label class="field"><span>Hard (s)</span><input type="number" id="hOnIn" inputmode="numeric" value="${p.on}"></label><label class="field"><span>Easy (s)</span><input type="number" id="hOffIn" inputmode="numeric" value="${p.off}"></label></div></div>
+      <button class="btn" id="hGo" style="width:100%;margin-top:14px;min-height:54px;font-size:18px">Start</button></div>`;
+  }
+  const hist=state.sessions.filter(s=>s.day==='chrono').slice(-10).reverse();
+  html += `<div class="card"><h3>Recent intervals</h3>${hist.length?`<div class="tablewrap"><table><tr><th>Date</th><th>${'Intervals'}</th><th>BPM</th><th>Note</th></tr>${hist.map(s=>`<tr><td>${esc(s.date)}</td><td>${esc((s.title||'').replace('Intervals · ',''))} · ${s.dur} min${s.hiit?` · ${s.hiit.rounds} ${s.hiit.rounds>1?'rounds':'round'} ${s.hiit.on}/${s.hiit.off}`:''}</td><td>${s.bpm||'–'}</td><td>${esc(s.note||'')}</td></tr>`).join('')}</table></div>`:`<p class="note">No intervals logged yet.</p>`}</div>`;
+  app.innerHTML=html;
+  const sv=(id,k,f)=>{ const el=document.getElementById(id); if(el) el.onchange=e=>{ state.hiit=state.hiit||{}; const v=parseFloat(e.target.value); if(!isNaN(v)) state.hiit[k]=f(v); persist(); }; };
+  sv('hRoundIn','round',v=>Math.round(v*60)); sv('hOnIn','on',v=>Math.round(v)); sv('hOffIn','off',v=>Math.round(v));
+  const go=document.getElementById('hGo'); if(go) go.onclick=()=>{ ['hRoundIn','hOnIn','hOffIn'].forEach(id=>{ const el=document.getElementById(id); if(el) el.dispatchEvent(new Event('change')); }); hiitOpen(); };
+  app.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ hiit.pending.act=b.dataset.act; hiit.pending.bpm=(document.getElementById('hBpm')||{}).value; hiit.pending.note=(document.getElementById('hNote')||{}).value; renderChrono(); });
+  const hs=document.getElementById('hSave'); if(hs) hs.onclick=()=>{ const pd=hiit.pending; const bpm=parseInt(document.getElementById('hBpm').value)||undefined; const note=document.getElementById('hNote').value.trim(); const act=pd.act||HIIT_ACTS[0];
+    state.sessions.push({key:'x-'+Date.now(), extra:true, week:currentWeek(), day:'chrono', title:'Intervals · '+act, act, place:'gym', date:iso(new Date()), rpe:7, note, bpm, dur:Math.max(1,Math.round(pd.secs/60)), time:pd.secs, hiit:{rounds:pd.rounds, round:pd.round, on:pd.on, off:pd.off}});
+    persist(); hiit.pending=null; toast('Cardio session saved'); renderChrono(); };
+  const hd=document.getElementById('hDiscard'); if(hd) hd.onclick=()=>{ hiit.pending=null; renderChrono(); };
+}
+function catchUp(){ try{ if(guided.tick) guided.tick(); if(guided.work&&guided.work.tick) guided.work.tick(); if(guided.iv&&guided.iv.tick) guided.iv.tick(); if(typeof run!=='undefined' && run.tick) run.tick(); if(circ.tick) circ.tick(); if(rest.tick) rest.tick(); if(hiit.tick) hiit.tick(); }catch(e){} }
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) catchUp(); }); window.addEventListener('focus',catchUp); window.addEventListener('pageshow',catchUp);
 
 /* ===================== Divers ===================== */
