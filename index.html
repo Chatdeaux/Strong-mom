@@ -58,6 +58,12 @@ h1,h2,h3{margin:0;font-weight:800;line-height:1.05}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600;line-height:1.2}
 .chips.days .chip{min-width:48px;text-align:center}
+.chips.days .chip small{display:block;font-size:11px;font-weight:600;opacity:.7;line-height:1.1;margin-top:1px}
+.chips.days .chip.nextwk{border-style:dashed;border-color:var(--accent);color:var(--accent)}
+.chips.days .chip.nextwk[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-style:solid}
+.chips.days .chip.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.chips.days .chip.today[aria-pressed="true"]{box-shadow:none}
+.chips.days .sep{flex:0 0 auto;width:1px;background:var(--line);margin:4px 4px}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chip.done::after{content:" ✓";color:var(--ok)}
 .chip[aria-pressed="true"].done::after{color:var(--bg)}
@@ -561,7 +567,11 @@ function renderToday(){
   } else if(programDone()){
     html += `<div class="card"><h3>12 weeks done</h3><p class="note">Redo the tests, compare with week 0, then start cycle ${cycleN()+1}. It begins straight in phase 2, with one extra set per exercise at home; at the gym, your logged loads keep climbing. Three cycles = 9 months: that's where the physique really changes.</p><button class="btn" id="restartBtn">Start cycle ${cycleN()+1}</button></div>`;
   }
-  html += `<div class="chips days" role="tablist">`+DAYS.map((d,i)=>`<button class="chip ${isDone(w,d.id)?'done':''}" role="tab" aria-pressed="${i===dIdx}" data-day="${i}">${d.name.slice(0,3)}</button>`).join('')+`</div>`;
+  { const curW=currentWeek(); const tIdx=todayIdx(); const mon=mondayOf(new Date()); const dnum=(wk,i)=>{ const x=new Date(mon); x.setDate(x.getDate()+(wk-curW)*7+i); return x.getDate(); };
+    const chip=(wk,i)=>{ const d=DAYS[i]; const nxt=wk>curW; const isT=(wk===curW&&i===tIdx); return `<button class="chip ${isDone(wk,d.id)?'done':''} ${nxt?'nextwk':''} ${isT?'today':''}" role="tab" aria-pressed="${wk===w&&i===dIdx}" data-day="${i}" data-week="${wk}" ${isT?'data-today="1"':''}>${d.name.slice(0,3)}<small>${dnum(wk,i)}</small></button>`; };
+    let chips=DAYS.map((d,i)=>chip(curW,i)).join('');
+    if(tIdx>0 && curW<12){ chips+=`<span class="sep" aria-hidden="true"></span>`+DAYS.slice(0,tIdx).map((d,i)=>chip(curW+1,i)).join(''); }
+    html += `<div class="chips days" role="tablist">`+chips+`</div>`; }
   if(day.kind!=='rest') html += placeChips();
   html += `<h2 class="display session-title">${esc(day.title.replace(' · bonus',''))}</h2><p class="meta">${esc(day.name)} · week ${w} · ${esc(PHASES[ph].name)}</p><div class="pills">${day.kind!=='rest'?`<span class="pill">≈ ${estimateMin(day,ph,w)} min</span>`:''}${day.opt?'<span class="pill warn">bonus · optional</span>':''}${isDone(w,day.id)?'<span class="pill ok">done ✓</span>':''}</div><p class="intro">${esc(day.intro)}</p>${expressOn()&&day.kind!=='rest'?`<p class="note">Express mode: the essentials in 20 minutes. Priority exercises, 3 sets max, 45 s rest, 3 min warm-up. A short session done beats a long one skipped.</p>`:''}`;
 
@@ -609,7 +619,7 @@ function renderToday(){
   app.innerHTML = html;
 
   /* interactions */
-  app.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{ view.day=+b.dataset.day; stopBig(); if(guided.active) stopGuided(); if(circ.active){ clearInterval(circ.int); circ.active=false; closeGf(); } render(); });
+  app.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{ view.day=+b.dataset.day; if(b.dataset.week!=null){ const wk=+b.dataset.week; view.week = (wk===currentWeek())? null : wk; } stopBig(); if(guided.active) stopGuided(); if(circ.active){ clearInterval(circ.int); circ.active=false; closeGf(); } render(); });
   const sb=document.getElementById('startBtn'); if(sb) sb.onclick=()=>{ const td=new Date(); const dow=(td.getDay()+6)%7; const m=mondayOf(td); if(dow>=4) m.setDate(m.getDate()+7); state.start=iso(m); view.week=null; persist(); toast('Program started'); render(); };
   const rb=document.getElementById('restartBtn'); if(rb) rb.onclick=()=>{ if(confirm('Start the next cycle? Your history, loads and images are kept.')){ state.cycle=cycleN()+1; state.start=iso(mondayOf(new Date())); state.checks={}; persist(); render(); } };
   app.querySelectorAll('[data-check]').forEach(b=>b.onclick=()=>{ const k=sessionKey(w,day.id); const arr=state.checks[k]||[]; const i=+b.dataset.check; arr[i]=!arr[i]; if(arr[i] && state.fbs&&state.fbs[k]&&state.fbs[k][i]==='skip') delete state.fbs[k][i]; state.checks[k]=arr; persist(); renderToday(); });
@@ -625,6 +635,7 @@ function renderToday(){
   const shb=document.getElementById('shareBtn'); if(shb) shb.onclick=()=>{ const s=state.sessions.find(s=>s.key===sessionKey(w,day.id)); if(s) shareSession(s, day); };
   const ub=document.getElementById('undoBtn'); if(ub) ub.onclick=()=>{ state.sessions=state.sessions.filter(s=>s.key!==sessionKey(w,day.id)); persist(); renderToday(); };
   big.day=day; big.ph=ph; bindBig(); bindImages(app); bindGuided(); bindPlace(app);
+  try{ const row=app.querySelector('.chips.days'); const sel=row&&(row.querySelector('[aria-pressed="true"]')||row.querySelector('[data-today]')); if(row&&sel&&row.scrollWidth>row.clientWidth){ row.scrollLeft=Math.max(0, sel.offsetLeft-row.clientWidth/2+sel.offsetWidth/2); } }catch(e){}
   const gb=document.getElementById('goBtn'); if(gb) gb.onclick=()=>showPrep(day, ph, w, ()=>startGuided(day, ph, w, dIdx));
 }
 
