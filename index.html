@@ -181,7 +181,9 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .gf .gvid{margin:14px auto 0}
 .gf .thumb{display:block;width:auto;height:auto;max-width:min(100%,380px);max-height:200px;object-fit:contain;margin:14px auto 0;border-radius:12px;border:1px solid var(--line);cursor:zoom-in;background:var(--surface)}
 .gf .how{max-width:38ch;margin:12px auto 0;text-align:center}
-.gf .how ol{text-align:left}
+.gf .how ol{text-align:left;max-width:100%}
+.gf .how,.gf .nextcard .how,.gf .donecard .how{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+.gf .how ol li{white-space:normal;overflow-wrap:anywhere;word-break:normal}
 .gf .count.off{color:var(--ok)}
 .gf .loadf{margin-top:12px}
 .gf .reco{max-width:38ch;margin:6px auto 0}
@@ -230,12 +232,16 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .gf .timerbox{margin-top:14px}
 .gf .remain{text-align:left;margin:6px auto 0;padding:0 0 0 20px;max-width:36ch;color:var(--ink-2);font-size:13.5px}
 .gf .remain li{margin:4px 0}
-.gf .nextcard .how{margin:8px 0 0;max-width:none}
+.gf .nextcard .how{margin:8px 0 0;max-width:100%}
 .gf .circlist{text-align:left;margin:18px auto 0;padding:0 0 0 22px;max-width:36ch;color:var(--ink-2);font-size:15px}
 .gf .circlist li{margin:6px 0;padding-left:4px}
 .gf .circlist li.cur{color:var(--ink);font-weight:800;font-size:17px}
 .gf .circlist li.done{opacity:.45;text-decoration:line-through}
 #gfElapsed.over{color:var(--warn)}
+.gf.ivon{background:#7A1E14;color:#fff}.gf.ivoff{background:#123D2B;color:#fff}.gf.ivon .lbl,.gf.ivoff .lbl,.gf.ivon .cue,.gf.ivoff .cue,.gf.ivon .gf-top,.gf.ivoff .gf-top{color:rgba(255,255,255,.8)}.gf.ivon .count,.gf.ivoff .count{color:#fff}.gf.ivon .gf-actions,.gf.ivoff .gf-actions{background:transparent;border-color:rgba(255,255,255,.2)}.gf.ivon .btn.ghost,.gf.ivoff .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}.gf.ivon .progressline,.gf.ivoff .progressline{background:rgba(255,255,255,.2)}
+.gf .ivbig{font-variation-settings:"wdth" 70;font-weight:900;font-size:min(120px,30vw);line-height:1;font-variant-numeric:tabular-nums;margin:6px 0}
+.gf .ivround{font-variation-settings:"wdth" 70;font-weight:900;font-size:40px;line-height:1;margin:14px 0 4px}
+.gf .ivphase{font-size:22px;letter-spacing:.14em;font-weight:900;margin-top:10px}
 #hiitf.on{background:#7A1E14;color:#fff}#hiitf.on .meta,#hiitf.on .lbl,#hiitf.on .note{color:rgba(255,255,255,.75)}#hiitf.on .frounds{background:rgba(255,255,255,.1);border-color:transparent}#hiitf.on .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
 #hiitf.off{background:#123D2B;color:#fff}#hiitf.off .meta,#hiitf.off .lbl,#hiitf.off .note{color:rgba(255,255,255,.75)}#hiitf.off .frounds{background:rgba(255,255,255,.1);border-color:transparent}#hiitf.off .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
 .actchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.actchips .chip{padding:10px 14px}
@@ -717,7 +723,7 @@ function startGuided(day, ph, w, dIdx){
   guided.elapsedInt=setInterval(()=>{ const el=document.getElementById('gfElapsed'); if(el) el.textContent=fmt((Date.now()-guided.startedAt)/1000); },1000);
   guided.scrollY=window.scrollY; document.body.classList.add('locked'); document.body.style.top=(-guided.scrollY)+'px'; document.getElementById('gf').classList.add('show'); drawGuided(); say('Go');
 }
-function clearGuidedTimers(){ clearInterval(guided.int); clearInterval(guided.work.int); guided.work.running=false; if(guided.iv){ clearInterval(guided.iv.int); guided.iv.running=false; guided.iv.phase=''; } }
+function clearGuidedTimers(){ try{ const g=document.getElementById('gf'); g.classList.remove('ivon','ivoff'); }catch(e){} clearInterval(guided.int); clearInterval(guided.work.int); guided.work.running=false; if(guided.iv){ clearInterval(guided.iv.int); guided.iv.running=false; guided.iv.phase=''; } }
 function closeGf(){ document.getElementById('gf').classList.remove('show'); document.body.classList.remove('locked'); document.body.style.top=''; try{ window.scrollTo(0,guided.scrollY||0); }catch(e){} clearInterval(guided.elapsedInt); try{ speechSynthesis.cancel(); }catch(e){} }
 function stopGuided(){ clearGuidedTimers(); closeGf(); if(guided.wake){ try{guided.wake.release();}catch(e){} } guided.active=false; guided.finished=false; }
 function markCheck(i,val){ const day=DAYS[guided.day]; const k=sessionKey(guided.week,day.id); const arr=state.checks[k]||[]; arr[i]=val; state.checks[k]=arr; persist(); }
@@ -757,19 +763,19 @@ function guidedPrev(){
 function guidedSkipExercise(){ clearGuidedTimers(); const cur=guided.seq[guided.pos]; let p=guided.pos; while(p<guided.seq.length && guided.seq[p].i===cur.i) p++; guided.pos=p; if(guided.pos>=guided.seq.length){ finishGuided(); return; } const st=guided.seq[guided.pos]; if(st.t==='rest'){ guided.pos++; } if(guided.pos>=guided.seq.length){ finishGuided(); return; } drawGuided(); }
 function repPart(rx){ const m=/×\s*(.*)$/.exec(rx); const s=(m?m[1]:rx).trim(); const n=/^(\d+(?:[.,]\d+)?)\s*(par bras|par jambe|par côté|per arm|per leg|per side|each way|steps each way|s\b|min\b|m\b|tours|rounds)?/.exec(s); if(!n) return {num:s, unit:''}; return {num:n[1], unit:(n[2]||'')}; }
 function startIntervals(on, off, rounds){
-  clearInterval(guided.iv.int); guided.iv={running:true, phase:'pre', left:3, round:1, rounds, on, off, int:null};
+  clearInterval(guided.iv.int); guided.iv={running:true, phase:'pre', left:3, round:1, rounds, on, off, int:null, startAt:Date.now()};
   say('3'); drawIvTick();
-  guided.iv.phaseEnd=Date.now()+3000;
-  guided.iv.tick=()=>{ const v=guided.iv; if(!v.running) return; const nl=Math.max(0,Math.ceil((v.phaseEnd-Date.now())/1000)); if(nl===v.left) return; const prev=v.left; v.left=nl;
-    if(v.left>0){ if(prev-v.left===1){ if(v.phase==='pre') say(String(v.left)); else if(v.left<=3) countdownCue(v.left); } drawIvTick(); return; }
-    if(v.phase==='pre'){ v.phase='on'; v.left=on; v.phaseEnd=Date.now()+on*1000; say('Go'); beep(1); }
-    else if(v.phase==='on'){ v.phase='off'; v.left=off; v.phaseEnd=Date.now()+off*1000; beep(2); say('Easy'); }
-    else { v.round++; if(v.round>v.rounds){ clearInterval(v.int); v.running=false; v.tick=null; beep(3); say('Done'); guidedNext(); return; } v.phase='on'; v.left=on; v.phaseEnd=Date.now()+on*1000; beep(1); say('Go'); }
-    drawIvTick(); };
-  guided.iv.int=setInterval(guided.iv.tick,400);
+  guided.iv.tick=()=>{ const v=guided.iv; if(!v.running) return; const e=(Date.now()-v.startAt)/1000; let phase, left, round=v.round;
+    if(e<3){ phase='pre'; left=Math.ceil(3-e); }
+    else { const t=e-3, cyc=v.on+v.off; round=Math.floor(t/cyc)+1; if(round>v.rounds){ clearInterval(v.int); v.running=false; v.tick=null; beep(3); say('Done'); guidedNext(); return; } const within=t%cyc; phase= within<v.on?'on':'off'; left=Math.ceil(phase==='on'? v.on-within : cyc-within); }
+    const prevPhase=v.phase, prevRound=v.round, prevLeft=v.left; v.phase=phase; v.round=round; v.left=left;
+    if(phase!==prevPhase || round!==prevRound){ if(phase==='on'){ beep(1); say('Go'); } else if(phase==='off'){ beep(2); say('Easy'); } }
+    else if(left!==prevLeft && prevLeft-left===1){ if(phase==='pre') say(String(left)); else if(left<=3 && left>0) countdownCue(left); }
+    if(phase!==prevPhase || round!==prevRound || left!==prevLeft) drawIvTick(); };
+  guided.iv.int=setInterval(guided.iv.tick,400); drawGuided();
   const b=document.getElementById('gIvStart'); if(b){ b.disabled=true; b.textContent='Running…'; }
 }
-function drawIvTick(){ const v=guided.iv; const el=document.getElementById('gWork'); if(el){ el.textContent=fmt(v.left); el.classList.toggle('off', v.phase==='off'); } const p=document.getElementById('ivPhase'); if(p) p.textContent = v.phase==='pre'?'READY':(v.phase==='on'?'HARD':'EASY'); const r=document.getElementById('ivRound'); if(r) r.textContent='Round '+Math.min(v.round,v.rounds)+'/'+v.rounds; }
+function drawIvTick(){ const v=guided.iv; const g=document.getElementById('gf'); g.classList.toggle('ivon', v.running&&v.phase==='on'); g.classList.toggle('ivoff', v.running&&v.phase==='off'); const el=document.getElementById('gWork'); if(el){ el.textContent=fmt(v.left); el.classList.toggle('off', v.phase==='off'); } const p=document.getElementById('ivPhase'); if(p) p.textContent = v.phase==='pre'?'READY':(v.phase==='on'?'HARD':'EASY'); const r=document.getElementById('ivRound'); if(r) r.textContent='Round '+Math.min(v.round,v.rounds)+'/'+v.rounds; }
 function startWorkTimer(secs){
   clearInterval(guided.work.int); guided.work.left=secs; guided.work.running=true; say('Go');
   guided.work.end=Date.now()+secs*1000;
@@ -796,14 +802,15 @@ function drawGuided(){
   document.getElementById('gfLeft').textContent=`Exercise ${exNo}/${exIdx.length} · ${day.title}`;
   document.getElementById('gfBar').style.width=pct+'%';
   const vb=document.getElementById('gfVoice'); vb.classList.toggle('off', state.voice===false); vb.textContent = state.voice===false?'🔇':'🔊';
-  const gf=document.getElementById('gf'); gf.classList.toggle('rest', st.t==='rest');
+  const gf=document.getElementById('gf'); gf.classList.toggle('rest', st.t==='rest'); gf.classList.toggle('ivon', !!(guided.iv.running&&guided.iv.phase==='on')); gf.classList.toggle('ivoff', !!(guided.iv.running&&guided.iv.phase==='off'));
   let body='', actions='';
   if(st.t==='work'){
     const rx=rxShow(b,ph,w,day); const secs=timedSecs(rx); const iv=b.iv?(Array.isArray(b.iv)?b.iv[ph]:b.iv):null;
     const rp=repPart(rx); const doneSets=guided.seq.filter((x,idx)=>x.t==='work'&&x.i===st.i&&guided.done.has(idx)).length; const repsN=repsOf(rx);
     const ivRounds = iv ? (iv.rounds || parseInt(rx) || 6) : 0; const key = iv ? `${ivRounds} × ${iv.on}/${iv.off} s` : (secs ? fmt(secs) : rp.num);
-    body=`<div class="lbl">Set ${st.s} of ${st.n}</div><div class="count">${esc(key)}</div><div class="lbl" style="margin-top:-4px">${esc(iv?'intervals':(secs?'hold':rp.unit||'reps'))}</div><div class="exname">${esc(b.n)}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}`;
-    if(iv){ body+=`<div class="timerbox"><div class="lbl" id="ivPhase">${guided.iv.running?(guided.iv.phase==='on'?'HARD':'EASY'):'intervals'}</div><div class="count ${guided.iv.phase==='off'?'off':''}" id="gWork">${fmt(guided.iv.running?guided.iv.left:iv.on)}</div><div class="lbl" id="ivRound">${guided.iv.running?'Round '+guided.iv.round+'/'+guided.iv.rounds:''}</div></div>`; }
+    if(iv && guided.iv.running){ const v=guided.iv; body=`<div class="lbl">${esc(b.n)}</div><div class="ivround" id="ivRound">Round ${Math.min(v.round,v.rounds)}/${v.rounds}</div><div class="ivphase" id="ivPhase">${v.phase==='pre'?'READY':(v.phase==='on'?'HARD':'EASY')}</div><div class="ivbig" id="gWork">${fmt(v.left)}</div><div class="cue" style="max-width:40ch">${esc(b.cue)}</div>`; }
+    else body=`<div class="lbl">Set ${st.s} of ${st.n}</div><div class="count">${esc(key)}</div><div class="lbl" style="margin-top:-4px">${esc(iv?'intervals':(secs?'hold':rp.unit||'reps'))}</div><div class="exname">${esc(b.n)}</div><div class="cue">${esc(b.cue)}</div>${hasLoadField(b0,b)?loadField(b.k):(b.k?recoFor(b.k):'')}${b.k?thumb(b.k):''}${b.k?howHtml(b.k):''}`;
+    if(iv && !guided.iv.running){ body+=`<div class="timerbox"><div class="lbl" id="ivPhase">${guided.iv.running?(guided.iv.phase==='on'?'HARD':'EASY'):'intervals'}</div><div class="count ${guided.iv.phase==='off'?'off':''}" id="gWork">${fmt(guided.iv.running?guided.iv.left:iv.on)}</div><div class="lbl" id="ivRound">${guided.iv.running?'Round '+guided.iv.round+'/'+guided.iv.rounds:''}</div></div>`; }
     else if(secs) body+=`<div class="timerbox"><div class="count" id="gWork">${fmt(guided.work.running?guided.work.left:secs)}</div></div>`;
     actions = (iv?`<button class="btn" id="gIvStart" data-on="${iv.on}" data-off="${iv.off}" data-rounds="${ivRounds}" ${guided.iv.running?'disabled':''}>${guided.iv.running?'Running…':'Go · intervals'}</button>`:(secs?`<button class="btn" id="gTimerStart" data-secs="${secs}" ${guided.work.running?'disabled':''}>${guided.work.running?'Running…':'Start timer'}</button>`:'')) +
       `<button class="btn ${(secs||iv)?'ghost':''}" id="gNext">${guided.pos===guided.seq.length-1?'Finish':'Set done'}</button><div class="small-row"><button class="btn ghost" id="gPrev" ${guided.pos===0?'disabled':''}>Back</button><button class="btn ghost" id="gSkip">Skip</button><button class="btn ghost" id="gQuit">Quit</button></div>`;
